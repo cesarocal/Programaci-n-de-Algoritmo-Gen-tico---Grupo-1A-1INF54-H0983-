@@ -1,0 +1,108 @@
+ Feasible path for ant 1
+74 for completing Flight 3’s delivery, signiﬁcantly increasing the ﬁnal responsiveness (125).
+Ants number three through six consider anticipated returns to the depot. These solutions
+appear less natural and are indeed not beneﬁcial, at least for this example.
+All other sequences of visits are eluded by the ant optimization process. Indeed, the
+neighborhood deﬁnitions prevent such paths. Three cases are illustrated in Figure 2 by the
+ants 7, 8 and 9. Ant 7 attempts to start with Truck 1. Visiting Flight 1 after leaving D1 is
+rejected since this aircraft, a B777, is incompatible with Truck 1. Ant 8 illustrates a violation
+of a time window. It is not possible to visit Flight 3 after replenishing Truck 1 since Truck
+1 would not be able to complete the operation before time 99.5, i.e. after the end of the
+time window (90). Ant 9 illustrates a problem of insuﬃcient capacity. No ﬂight is in the
+neighborhood of Flight 1 for Truck 2 since its remaining capacity is ﬁve units of fuel at this
+time, which is less than the minimal allowed quantity for a split delivery and less than what
+is required by the other ﬂights (10 and 15).
+Another important insight from this illustration is that optimizing responsiveness or
+distance does not lead to equivalent solutions. The path for the most responsive solution (Ant
+1) is longer (37 units) than the shortest solution (36 units). Conversely, the responsiveness
+for the shortest solution (116.5 units of time) is far less attractive than the most responsive
+solution (97). Note also that the shortest path would not have been encountered without
+allowing trucks to return in advance to the depot (d0 > 0).
+5.8
+Back to the distance criterion
+Considering responsiveness instead of distance is of critical importance in many applications.
+Thus, the focus of this work is on responsiveness. Minimizing the length of routes obviously
+remains an attractive question in many other contexts. It is also scientiﬁcally interesting
+to compare routes obtained with these two diﬀerent objectives.
+While Algorithm 1 was
+developed with a responsiveness criterion in mind, it can easily be adapted to use the distance
+criterion instead,; going back to the procedures deﬁned in Section 4 for the objective and the
+closeness measure. The implementation of all the other constraints remains valid. Primarily,
+the closeness measure must be replaced based on the distance (line 13), each Ni \{D} by Ni
+(lines 11 and 16) and the probabilistic return to the depot (line 14) suppressed. Finally, R
+has to be replaced by T. In the results section, the two versions are executed on benchmarks
+found in the literature in order to compare the responsive routes with the shortest ones.
+15
+
+
+=== PAGE 16 ===
+6
+Initialization and improvements
+We discuss here how to initialize the ACS and, as a side eﬀect, how to get some benchmarks
+for the responsiveness criterion. We also present some methods to improve the solutions
+provided by the ants.
+6.1
+Initial solutions
+A ﬁrst feasible solution is required to initialize τ0. A classical approach is to use a nearest
+neighbor heuristic. A sequence of visits is constructed one at a time for each vehicle. In the
+sequence, the nearest client of i in the feasible neighborhood Ni is selected. Ni is deﬁned
+as in the ant colony algorithm and therefore takes into account all the dimensions of the
+problem. The nearest client is deﬁned as the one for which the client responsiveness is the
+smallest. If two clients have the same responsiveness, the tie is broken by minimizing the
+distance. When we replace the objective of responsiveness by a traditional criterion, the
+nearest client remains the closest one.
+This ﬁrst heuristic does not adequately suit a responsiveness criterion. In practice, dis-
+patchers in airports use another basic approach, simply serveing the clients by order of
+arrival. The main loop is therefore no longer on the vehicles, but on the clients. Within
+the pool of vehicles available and compatible at the start of a client time window, we select
+the one which is idle for the longest time. This heuristic, named FIFO for First In First
+Out, may serve as a tool to identify an initial feasible solution and to compute τ0, but it is
+also a benchmark with which to compare our results to standard practice. Note that this
+benchmark assumes, in the dynamic case, that the vehicle starts to move to reach a client i
+only after ai since a dispatcher typically waits until the start of the time window for all the
+latest information. It therefore implies that the client will always have to wait, at least for
+the travel time. In a deterministic case and to better take into account the heterogeneity of
+the ﬂeet, a variation of this heuristic allows the vehicle to start to the client as soon as the
+vehicle is available, and the preferred vehicle is the one which incurs the smallest responsive-
+ness for the client. This variant, denoted FIFO2, is used to compute the initial solution. If
+we want to replace the responsiveness criterion with a more traditional minimization of the
+distance, the same heuristic remains valid. The preferred vehicle for a client simply becomes
+the nearest one. One additional approach is sometimes considered in practice. The dispatch-
+ers initially plan the journey deterministically as in the FIFO approach. A list of clients is
+then associated with each driver, but here he has to follow this list even if new events occur.
+Along the course of the operating day and with the arrival of new information, each driver
+adapts the plan using the FIFO heuristic but only considering his vehicle and his list of
+clients. This second strategy is clearly less eﬃcient than the FIFO one but corresponds to
+another reality of operations. Since it will always provide a larger value for the objective
+function, we do not use it in the sequel.
+6.2
+Local searches
+When an ant has completed its search (line 36 of Algorithm 1), the solution might be in-
+complete. As suggested in Gambardella et al. (1999), the algorithm attempts to reconstruct
+a local solution by inserting the remaining clients in the path . For each client, the best
+insertion in the current tours is kept if such an insertion exists. Gambardella et al. (1999)
+16
+
+
+=== PAGE 17 ===
+considers each client by decreasing demand. In our responsiveness and richer context, we ob-
+tained better results by selecting the clients in a random order. Finally, to preserve the spirit
+of the ant colony and to avoid spending too much time here, the insertion procedure is only
+started when the ant provides a signiﬁcantly long solution (for our numerical experiments,
+at least 75% of the clients must be visited by the ant before initiating insertions).
+Even when the ant, with or without insertions, provides a local feasible optimum, it is well
+known that performance can generally be improved by combining the ACS with local search
+procedures (line 39). As suggested again in Gambardella et al. (1999), we developed a local
+search basic heuristic based on CROSS exchanges (Taillard et al. (1997)). Such an operation
+consists of permuting two sub-chains of clients belonging to two diﬀerent vehicles. One of the
+sub-chains could be empty, leading to a more traditional insertion. Both sub-chains could
+also end at the depot leading to a 2-opt edges exchange. In our na¨ıve algorithm, we only
+apply a few CROSS exchanges such that it improves the objective each time. Each vehicle is
+tested in a random order in conjunction with a second one. Since CROSS exchanges imply
+two vehicles, we also tested a local search limited to one vehicle at a time. Each client is
+successively moved to another position in the same tour. The best move, if any, is kept.
+6.3
+Pheromone conservation
+As a ﬁnal improvement, we have included in the algorithm the pheromone conservation
+procedure developed by Montemanni et al. (2005). The idea is to pass valuable information
+from one optimization to the next one in the dynamic context

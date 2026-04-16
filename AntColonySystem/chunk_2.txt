@@ -1,0 +1,113 @@
+fter the
+new information arrives. As stated in Giaglis et al. (2004), this approach is requested in
+practice. While an initial planning minimizing the risk is necessary, we need methods to
+respond to unforeseen events when they happen. It is only more recently that technology
+has allowed consideration of such applications.
+Indeed, real-time applications require a
+powerful information system, such as systems based on GPS, to locate the vehicles and
+to communicate with them.
+Repeatedly computing new solutions also requires powerful
+computers or systems of computers (parallel computing as in Ghiani et al., 2003) and state-
+of-the art algorithms. In our framework, we accept and immediately react to any unexpected
+events, without relying on probability distributions and without identifying beforehand sets
+of possible future, as would be typically done in static stochastic approaches. The dynamic
+dimension of our work was inspired by the work of Montemanni et al. (2005) and is adapted
+to include the reoptimization strategy proposed by Gendreau et al. (1999). Our work also
+departs from these two papers by the extensive list of constraints we consider. Moreover,
+we believe that our third and main contribution is to propose a new objective criterion, i.e.
+responsiveness, especially adapted in such dynamic contexts. To the best of our knowledge,
+this approach is new and original.
+State of the art methods to exactly solve VRPs are very complex. They typically rely
+on branch-and-cut-and-price algorithms and route relaxations strategies (see Baldacci et al.,
+2012). Richer and medium-sized problems generally remain intractable or too lengthy to
+solve with exact methods.
+In this context, the development of heuristics is the tradi-
+tional and often only reasonable approach.
+Many strategies are described in the liter-
+ature (see, e.g., Archetti and Speranza, 2012; Br¨aysy and Gendreau, 2005; Laporte, 2009
+for a description of methods and surveys). Tabu search is probably the most often cited
+method, either alone or to expedite exact methods. Many authors also tackle VRP vari-
+ants using ant colonies. Other papers rely on ad-hoc heuristics, adaptive large neighbor-
+hood search or genetic algorithms. Our fourth contribution is to analyze the performances
+of an Ant Colony System (ACS) approach. We selected this metaheuristic based on the
+promising results described in the literature for the standard VPRTW (Gambardella et al.,
+1999). Note that many of our developments could be adapted to other local search meth-
+ods.
+Ant Colony Optimization (ACO), as explained in Dorigo et al. (1996), is inspired
+by the collaborative behavior of naturally independent agents: ants. This algorithm has
+been modiﬁed to solve many diﬀerent discrete optimization problems (Dorigo et al., 1999).
+In particular, ACO was applied to graph optimization problems including the Traveling
+3
+
+
+=== PAGE 4 ===
+Salesman Problem (Dorigo and Gambardella, 1997), which can be seen as a VRP with
+only one vehicle.
+This leads to the ACS, an improved version of the ACO. The ACO
+algorithm is very ﬂexible, and other characteristics such as time dependency, uncertainty,
+real-time conditions, backhauls, pickup and delivery, heterogeneous ﬂeet or other improve-
+ments were introduced one at a time in the literature (Benslimane and Benadada, 2013;
+Bin et al., 2009; Donati et al., 2008; Gajpal and Abad, 2009; Gambardella et al., 2003, 1999;
+Montemanni et al., 2005; Reimann et al., 2004; Rizzoli et al., 2007). In this research, we took
+inspiration from Gambardella et al. (1999) for the ant framework.
+3
+Problem description
+We present an approach to dealing with a broad range of Dynamic Capacitated Vehicle
+Routing Problems with Time Windows, (partial) Split Delivery and Heterogeneous ﬂeets
+(DVRPTWSD). Formally, this problem can be represented by a digraph G = (N, A) where
+N = {D, 1, . . . , n} is the set of nodes and A = {(i, j)|i, j ∈N, i ̸= j} is the set of arcs. The
+nodes in N \ {D} denote the clients to serve and D represents the depot. For each customer
+i in N \ {D}, we have a positive quantity qi to be delivered within a particular time window
+[ai, bi]. This is a hard time window within which the service must be entirely completed. This
+is a strong constraint justiﬁed by the huge penalties encountered by the companies when
+these windows are not respected, such as in the context of the airports. Note, however,
+that this constraint is essentially restrictive at the upper bound bi. As usually accepted for
+VRPTW, a vehicle is allowed to arrive in advance but has to wait until the beginning of
+the time windows to start the service. No penalty is incurred in this case. We consider a
+single depot D from which each vehicle starts and must return. We assume that there is no
+demand at D and that the depot is always open. For algorithmic reasons, the depot D is
+duplicated once for each vehicle. Distances between copies of the depot are set to zero. Let
+V = {1, . . . , v} be the set of vehicles, Dk with k ∈V is the virtual copy of the depot from
+which vehicle k starts. dij and tij represent respectively the distance and the travel time
+along the arc (i, j) ∈A. We assume that tij is directly proportional to dij and that each
+vehicle travels at the same speed.
+The ﬂeet of vehicles V is heterogeneous. Each vehicle k ∈V is characterized by a speciﬁc
+capacity Ck, a service operating time and an incompatibility list. The operating time for
+serving client j with vehicle k is deﬁned as ok
+j = ck + vkqj, where ck is the constant time
+required by vehicle k for setup and post-operations, and vk is the variable time required by
+vehicle k to deliver one unit of product. The incompatibility list takes into account that some
+vehicles are not allowed or not appropriate to serve some clients. For example, in the case
+of an airport, some trucks are too big to serve some small types of aircraft or are prohibited
+from delivering fuel to some speciﬁc ﬂights. We also make the assumption that the ﬂeet of
+vehicles belongs to the ﬂeet handler. The size of such a ﬂeet cannot vary dynamically with
+respect to the demand, and reducing the number of trucks operating simultaneously does
+not have a strong impact on the cost structure. We therefore do not attempt to minimize
+the number of vehicles in use.
+We are concerned by situations where the responsiveness is more critical than the dis-
+tance traveled. Responsiveness is deﬁned here as completing a delivery as soon as possible,
+within the time window, such that the client or vehicle are able to operate again. Note
+that minimizing the arrival time within the time window is not the only way to improve
+4
+
+
+=== PAGE 5 ===
+responsiveness. The duration of the service, depending on the vehicle, must also be taken
+into account. The global objective to minimize becomes R = P
+j sj +ok(j)
+j
+−aj where sj ≥aj
+is the start of service time for client j and where the superscript k(j) is used to express that
+a speciﬁc vehicle k is determined by the algorithm to serve client j. By deﬁnition, since the
+operating service time is a strictly positive value, so is R. A lower bound can be computed
+beforehand. This objective is in contrast to the cost function computed in traditional VRPs
+where the goal is to minimize the total distance T = P
+(i,j)∈A dijxij (or a related function).
+In this last function, xij is a binary variable that indicates if arc (i, j) is traveled in the
+solution. Note that, in our context, when two solutions with the same responsiveness are
+found, the one with the shortest distance T is preferred.
+In the VRP with split deliveries, a single customer can be served by diﬀerent vehicles. The
+basic case is one in which the quantities requested by the clients are larger than the capacity
+of the vehicles. This can also occur in certain speciﬁc situations when the overall cost is
+decreased by splitting the delivery. A typical case is when the remaining capacity of a vehicle
+at the end of its trip is no longer large enou

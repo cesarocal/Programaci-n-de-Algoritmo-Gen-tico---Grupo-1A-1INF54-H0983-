@@ -1,0 +1,110 @@
+gh to serve another client. Instead of sending this
+vehicle back to the depot with a positive remaining capacity, it may be beneﬁcial to empty
+the vehicle by visiting a ﬁnal client before sending another vehicle to complete, either totally
+or partially, the delivery. In the airport context, this is the usual technique. Following our
+approach, a split delivery can only occur when the remaining capacity is not large enough to
+serve an attractive client. This covers the basic case where the vehicle capacities are smaller
+than the demands. However, it excludes a split delivery between vehicles which would have
+been able to fully serve a client on their own. This last strategy is rarely optimal due to
+the travel costs and the ﬁxed amount of time required for any service. Moreover, several
+vehicles may be banned from serving the same client simultaneously. Such operations are
+often prevented by infrastructure constraints such as a limited number of unloading docks
+or an aircraft with one tank and one main inlet.
+Our problem is a multi-trip VRP. The planning horizon may be extremely long, or even
+inﬁnite, while at the same time the ﬂeet size is limited. The same vehicle must be allowed
+to replenish to start a new tour afterward, if needed. Each time a vehicle comes back to
+the depot, we automatically load it again at full capacity. The time required for reloading
+vehicle k follows a scheme similar to the one for serving the clients : ok
+D = ck
+D + vk
+D(Ck −rk).
+Speciﬁc constant and variable times, ck
+D and vk
+D, are allowed for the depot. The quantity to
+load is the diﬀerence between the full capacity Ck and the remaining capacity rk at the end
+of the previous tour. As soon as the replenishment is complete, the vehicle is again available.
+Note that this multi-trip possibility also implies that a split delivery could be performed by
+a single vehicle.
+Finally, we consider a stochastic dynamic environment. Many companies operate con-
+tinuously seven days a week. It is therefore not possible to precisely determine the end or
+the beginning of the planning horizon. Moreover, the world is uncertain: delivery quanti-
+ties might only be based on expectations and time windows may be shifted; ﬂights could
+be delayed or canceled due to the weather or a breakdown. In Dynamic Vehicle Routing
+Problems, new events and new information can be integrated into the process. We are able
+to respond to any change of the data at any moment: client cancellation, new time windows,
+new quantities to deliver, new clients, lateness or breakdown of a vehicle, new incompatibil-
+ity lists and new locations of the clients or of the vehicles. As in Gendreau et al. (1999), our
+strategy is to reconsider the plan each time new information is available.
+To address this dynamic context, some additional assumptions must be made. First, as
+5
+
+
+=== PAGE 6 ===
+in Gendreau et al. (1999), we assume that a driver may accept a new instruction only when
+he has completed the previous operation. Second, while all the vehicles start initially from
+the depot, they can be anywhere at the time of a new optimization. Each client location, not
+only the depot, could become the starting point of the updated route. Finally, the routes
+are closed loops. When we start the optimization of a new plan we consider that the ﬁnal
+operation of a vehicle is to return to the depot. This could be suboptimal in a dynamic
+context.
+Indeed, imagine that in the current planning a vehicle is serving a ﬁnal client
+i before returning to the depot with a large remaining capacity. If a new order appears
+immediately afterwards for a client in the vicinity of i, then going back to the depot in
+between was an erroneous decision. Instead, we could have considered open routes ending
+with clients instead of the depot. In this case, the vehicles wait at client locations for new
+orders. This approach also has drawbacks since it could be optimal to immediately return to
+the depot at each period of inactivity to replenish and to be again available to operate large
+tours. The optimal location or relocation of vehicles during the inactivity period is itself
+another separate research question and is not developed here. We believe that the closed
+routes approach is more realistic and will adhere to it.
+An important question to address concerns the existence of a feasible solution, especially
+in a dynamic context. In our multi-trip framework and under a weak assumption guarantying
+the existence of at least one compatible truck for each client, the sole critical constraints
+are the time windows.
+Three main scenarios can be considered to ﬁx this problem.
+In
+the ﬁrst one, the total demand is predictable and stable, and the size of the ﬂeet is initially
+determined to match any peak of demand. Agreements may also exist with other transporters
+to temporarily extend the size of the ﬂeet, if needed. In the second case, the decision process
+implies that the ﬁrm must decide which orders to accept and which orders to reject before
+starting the optimization of the tours. Some authors have studied the feasibility of families
+of VRPs in the dynamic context and propose mechanisms to identify the orders to reject
+(see, e.g., Berbeglia et al., 2010, 2011, 2012). In the last scenario, we consider soft windows
+where penalties proportional to the violations are added to the cost function in order to
+minimize it.
+The starting point of this work is a problem submitted by an airport. In this context, as
+in many other ones, the demand is predictable and the ﬂeet size is typically large enough.
+Moreover, rejecting an order is not an option, there is only one service provider and each
+ﬂight must be served. We therefore focus in this work on the ﬁrst scenario. Note however
+that the soft time windows approach is extremely easy to implement when the criterion to
+optimize is responsiveness. Indeed, in a basic scheme, we only need to ignore the upper
+bounds of the time windows since the deﬁnition of responsiveness implies that any late
+completion of service, within or outside the time windows, costs more. This approach has
+nevertheless the disadvantage to drastically increase the size of the solution space. Note also
+that our dynamic approach allows us to adjust the hard time windows based on the actual
+conditions (even if it is likely to induce a penalty for the company) when no feasible solutions
+exist.
+4
+The ACS algorithm for the VRPTW
+Ant colony algorithms are inspired by the collaborative behavior of ants in real life. The
+ants wander randomly when looking for food but they are attracted to a substance, called
+6
+
+
+=== PAGE 7 ===
+pheromone, left by other ants. Pheromone is generated by the ants on their way back to
+the colony after reaching food. When several ants use a path to reach food, pheromone
+levels increase up and a path becomes more and more attractive to other ants. However,
+pheromone evaporates with time. As it takes a longer period of time to travel along a long
+path, the intensity of pheromone is lower than for a shorter path. This mechanism has the
+double advantage of favoring shorter paths and reducing the attraction to local optima.
+We ﬁrst brieﬂy recall the basic ant colony algorithm for the classical VRPTW with one
+vehicle and a distance minimization objective. A route is constructed iteratively by moving
+one ant, namely the vehicle, from one client to the next one. A route starts from the depot,
+must serve all clients, and comes back to the depot. A typical criterion is the minimization of
+the total distance (or of the travel time as a function of the distance). Starting from client i,
+the next client j is probabilistically selected in the set of clients reachable from client i. This
+set is denoted Ni . For the VRPTW, a client belongs to Ni if it has not yet been visited, if
+the remaining vehicle capacity is large enough to serve it and if the vehicle can arrive before
+the end of the time window. This deﬁnition is extended later for the DVRPTWSD. Two
+measure

@@ -1,0 +1,258 @@
+s of attractiveness are attached to each feasible move: the closeness ηij, which is
+typically the inverse of the distance between the two clients, and the pheromone trail τij. In
+Gambardella et al. (1999), the closeness measure is based on time, and distance is redeﬁned
+for the closeness measure as distance = (sj −wi)(bj −wi) where wi = si + oi, or the time at
+which the vehicle is again available after serving client i.
+The selection of the next client to serve is done in two steps. First, we select at random
+either, with a probability q0, an exploitation strategy or, with a probability (1 −q0), an
+exploration strategy. During exploitation, the most attractive client j is selected, that is to
+say the one with the highest τijηβ
+ij where β is a parameter weighting the importance of the
+closeness criterion. During exploration, any client j within Ni can be selected but with a
+probability pij still depending on its attractiveness. There is no warranty that the ant will
+be able to visit all the clients but this process is repeated using m ants.
+pij =
+τijηβ
+ij
+P
+l∈Ni τilηβ
+il
+It was found empirically that a good initial value for all the τij is given by τ0 =
+1
+nL0,
+where n is the number of clients and L0 is the best known length of the route found by a
+heuristic. In ACS, the pheromone trail is updated both locally and globally. Locally, each
+time an ant moves along an edge, the corresponding trail is decreased using the formula
+τij = (1 −ρ)τij + ρτ0, where ρ(0 ≤ρ ≤1) is a parameter. This corresponds to evaporation
+and favors diversiﬁcation. Globally, each time the m ants have completed their search, the
+pheromone trails τij associated with the best solution encountered since the beginning are
+increased by τij = (1 −ρ)τij + ρL∗, where L∗is the length of the new optimal route.
+This scheme is easily extendable to the multi-vehicles case as follows. A virtual depot Dk
+is created for each vehicle k. They are considered as new possible “clients” to visit, without
+demand and with a large time window. All the copies have the same coordinates. When
+the ant leaves a depot Dk, it corresponds to the beginning of a route for vehicle k, which
+becomes the current vehicle. When the ant arrives in a depot Dk, it corresponds to the end
+of the route of the current vehicle. If a depot Dk is not visited, then the associated vehicle k
+is not used. A solution, denoted ψ, can be represented as a sorted list of clients and depots
+Dk to visit.
+7
+
+
+=== PAGE 8 ===
+4
+1
+3
+D1D2
+D3D4
+6
+5
+7
+2
+9
+8
+10
+14
+13
+11
+12
+D1 6
+4
+1 D2 3
+2
+5
+7 D4 9
+8 10 14 13 D312 11 D1
+T4
+T1
+T3
+T1
+T2
+T4
+T3
+T1
+T2
+k
+Figure 1: Structure of a route for one ant
+When vehicle k leaves Dk, the corresponding vehicle properties are associated to the ant
+and the clock is reset to the beginning of the planning horizon. While ψ is constructed
+successively one vehicle at a time, the time sequence is not strictly increasing. Each segment
+of the path between two copies Dk corresponds to one parallel time sequence. Time and
+capacity usages are then computed as usual. If client j belongs to Ni,we get:
+sj = max (si + oi + tij, aj)
+rj = ri −qj
+where ri is initialized at the vehicle capacity C.
+5
+The ACS algorithm for the DVRPTWSD with re-
+sponsiveness
+We give ﬁrst the outline of the algorithm and leave the details of the adaptations with respect
+to the standard ACS for the next subsections. We also provide a basic example at the end
+of the section to illustrate how all the characteristics are handled.
+5.1
+From the standard VRPTW to the DVRPTWSD with re-
+sponsiveness
+The algorithm for the problem at hand, limited ﬁrst to the static context, is depicted in
+Algorithm 1. The general scheme of the ACS presented in the previous section is preserved.
+Until a time limit is reached (line 3), one ant at a time leaves the colony (line 4) to sequentially
+construct a tentative path ψ. A move from one location to the next one may be considered
+while there exists at least one client who can still be visited within the time window by a
+non-empty and compatible truck (loop starting line 10). Otherwise, the ant stops its attempt
+and the post-treatments start (line 13). Each move from the current location to the next one
+implies two steps. First, the next location is determined (lines 11) by calling the function
+SelectNextLocation (see Algorithm 2). Second, the move is executed from i to j (line 12)
+by calling the function MoveTo (see Algorithm 3). Next, if the ﬁnal ant path does not go
+through all the clients, a procedure attempts to insert the missing customers (line 13). Some
+post-treatments occur (lines 14-18) each time one ant founds a path serving all the clients.
+It includes local search improvements, the update of the best solution and the pheromone
+8
+
+
+=== PAGE 9 ===
+1 (R∗, ψ∗) ←Greedy heuristic ;
+// Initialization
+2 τ0 ←
+1
+nR∗; τij ←τ0 ∀i, j ∈N;
+3 while ¬ Time limit do
+4
+foreach Ant do
+// Main loop:
+one ant looks for a solution
+5
+Draw vehicle k ∈V at random ;
+6
+Read vehicle status;
+7
+ψ ←{Dk} ;
+// Path initialization
+8
+i ←D ;
+// First location
+9
+wi ←1st time of availability for k;
+10
+while ∃client j who can be reached within its TW by a compatible truck do
+11
+j ←SelectNextLocation(i);
+12
+i ←MoveTo(j);
+13
+if All clients are not served then ψ ←Insertion procedure(ψ);
+14
+if All clients are served then // A solution ψ exists→post-treatments
+15
+Update ψ to bring all the vehicles back to D;
+16
+Local search to eventually improve the current solution ψ;
+17
+if (Rψ < R∗) OR ((Rψ == R∗) AND (T ψ < T ∗)) then (R∗, ψ∗) ←(Rψ, ψ);
+18
+foreach arc (i, j) ∈ψ do τij = (1 −ρ)τij + ρτ0;// Update trail locally
+19
+foreach arc (i, j) ∈ψ∗do τij = (1 −ρ)τij +
+ρ
+R∗;
+// Update trail globally
+Algorithm 1: Static ant colony algorithm
+1 Function SelectNextLocation(i)
+2
+if (Ni == {D}) then j ←D;
+3
+else
+4
+foreach j ∈Ni \ {D} do ηij ←
+1
+max(wi+tij,aj)+ok(j)
+j
+−aj ;
+5
+With probability d0, j ←D ;
+// Depot strategy
+6
+else With probability q0, j ←arg maxl τilηβ
+il;
+// Exploitation
+7
+else Select j ∈Ni \ {D} with probability
+τijηβ
+ij
+P
+l∈Ni τilηβ
+il ;
+// Exploration
+8
+Return j;
+Algorithm 2: SelectNextLocation()
+evaporation. Finally (line 19), when a group of ants has completed the search, the trail
+is globally updated based on the best current solution. In the dynamic context, the same
+algorithm is called repeatedly with a proper initialization of the inputs.
+SelectNextLocation selects the next visit using the ant colony mechanisms: trail intensity,
+closeness, exploration and exploitation.
+A vehicle is only allowed to move to a feasible
+neighbor ∈Ni. A client belongs to Ni if it has not yet been (fully) served, if the remaining
+vehicle capacity is large enough to serve it and if the vehicle can be served before the end of
+the time window. This last constraint may be relaxed when considering soft time windows.
+We remove from this set the list of incompatible clients for the vehicle visiting i. MoveTo
+performs the move. The path ψ, the client status and the vehicle status are updated. The
+procedure diﬀers when the next location is the depot (lines 2-8), or a client (lines 9-19).
+9
+
+
+=== PAGE 10 ===
+1 Function MoveTo(j)
+2
+if (j == D) then
+// Either return to depot
+3
+rk ←Ck;
+4
+New time of availability for k ←wi + tiD + ok
+D;
+5
+With probability ζ, restart with the same vehicle k;
+6
+else Draw vehicle k ∈V at random;
+7
+ψ ←ψ + {Dk};
+8
+wD ←1st time of availability for k;
+9
+else
+// ...or serve a client
+10
+ψ ←ψ + {j};
+11
+if (qj > rk) then
+// If this is a split delivery
+12
+wj ←wi + tij + ok(j)
+j
+with qj in ok(j) replaced by rk;
+13
+qj ←qj −rk for this ant;
+14
+aj ←wj for this ant;
+15
+rk ←0;
+16
+else
+// ...
+or not a split delivery
+17
+wj ←wi + tij + ok(j)
+j
+;
+18
+rk ←rk −qj;
+19
+j is marked as fully served;
+20
+Return j;
+Algorithm 3: MoveTo()
+5.2
+Responsiveness criterion
+We are concerned by situations where responsiveness is more critical than the distance
+traveled. The global objective, as deﬁned in the problem description section, is to minimize
+the responsiveness P
+j sj + ok(j)
+j
+−aj. In the ACS, the

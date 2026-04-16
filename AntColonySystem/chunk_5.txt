@@ -1,0 +1,118 @@
+ optimization of the objective function
+is achieved through the closeness measure that we redeﬁne as:
+ηij =
+1
+Rij
+=
+1
+sj + ok(j)
+j
+−aj
+where Rij is the marginal responsiveness attached to the move from client i to client j.
+A drawback to this measure is that the standard mechanism for determining the next
+move can no longer be used as such. In the previous mechanism, the closeness measure is used
+without diﬀerentiating between the depot and the clients. In our context, however, the depot
+and the clients have diﬀerent structures for the time windows. For the depot, the window
+includes the entire planning horizon. Therefore, the depot is always eligible and the related
+closeness measure strictly increases with time. The more time goes into the construction
+of the path, the more the algorithm would suggest to bring the vehicle back to the depot.
+We can easily solve this issue by removing all the depots from the neighborhoods Ni and by
+adapting the displacement strategy. Two cases occur. When there are no more clients in Ni,
+the only feasible next move is going to the depot (line 11). Otherwise, we may allow, with a
+probability of d0 (line 14), the vehicle to go back early to the depot, or, with a probability
+of (1 −d0), we may apply the traditional exploitation/exploration mechanism (lines 15-16).
+10
+
+
+=== PAGE 11 ===
+d0 is a parameter and could be left at zero to send the vehicles back to the depot only when
+truly required. This is the typical strategy in practice in many cases. We suggest here to
+allow anticipated returns for two reasons. The ﬁrst is in the context of a multi-trip strategy.
+We may hope that a vehicle fully replenished during intermediate periods (when the demand
+would be less intense) could be able to serve successively more clients later (during periods
+with more intense demand). Second, anticipated returns may allow construction of more
+balanced routes. Indeed, within the responsiveness framework, each vehicle is considered
+successively for constructing routes. It increases the probability that longer routes, in terms
+of number of clients, would be aﬀected to the ﬁrst selected vehicles. The sequence of vehicles
+is drawn at random and no vehicle is actually disadvantaged, but the process could still end
+with unbalanced routes. Note, however, that the local search described later, based on cross
+exchanges, naturally corrects this phenomenon. The anticipated return strategy remains an
+option in an attempt to improve the process at the level of the ACS. On the other hand,
+requiring the vehicles to come back in advance to the depot may prevent the construction
+of unbalanced routes. This question is solved by applying this strategy only to a subset of
+ants and by deﬁning a dynamic value of d0. Any static value for d0 could be deﬁned by the
+user depending on the problem at hand. We propose a more dynamic strategy. Based on
+the ﬁrst multi-trip motivation, sending back a vehicle is senseless if its remaining capacity is
+large. We ﬁrst associate d0 with the percentage of emptiness ((Ck −rk)/Ck). Sending back
+a vehicle every two moves on average when it is at half capacity would remain excessive. We
+next associate d0 with the average number of moves a vehicle would perform before being
+empty. With q denoting the average demand, the typical number of moves would be Ck/q.
+This leads to our proposal: d0 = q(Ck−rk)
+C2
+k
+.
+In connection with the responsiveness criterion, there is another major diﬀerence between
+our approach and the traditional one: the size of the ﬂeet. We consider ﬂeets of vehicles
+belonging to the operator. The size of such a ﬂeet cannot vary dynamically with respect to the
+demand and reducing the number of vehicles operating simultaneously does not have a strong
+impact on the cost structure. We therefore don’t try to minimize the number of vehicles in
+use. By contrast, an optimal solution in the context of the responsiveness criterion would
+naturally put as many vehicles to work as possible . Initializing the algorithm with a realistic
+ﬂeet size limit is therefore compulsory. This contrasts with the results obtained when the
+criterion is based on the distance and where using fewer vehicles could be a way of reducing
+the distances. Note also that the responsiveness objective is not always contradictory to the
+minimization of the distances. Short distances imply short travel times, and short travel
+times facilitate an arrival at the beginning of the time windows. This becomes even more
+signiﬁcant when responsiveness includes the travel time; for example when the beginning of
+a time window corresponds to the demand notiﬁcation in the dynamic case. The shortest
+route is, however, not guaranteed to be the optimal one. We check this assertion in the
+experiments.
+5.3
+Heterogeneous ﬂeet
+The main adaptation of the algorithm for the heterogeneous ﬂeet, beside the deﬁnition of
+the closeness measure as a function of ok
+j, is done at the level of the neighborhoods Ni
+constructions. Before considering the addition of client j to Ni, we must ensure that client
+j doesn’t belong to the list of incompatible clients for the vehicle leaving i. The speciﬁc
+operating time ok
+j also has an indirect impact on the neighborhood construction. Depending
+11
+
+
+=== PAGE 12 ===
+on the departure times from each client j, a speciﬁc vehicle k may or may not be able to
+reach another client in time. For all three of these components, we need to know which
+vehicle is arriving at client j. Since one depot Dk was created as a starting point for each
+vehicle k, it suﬃces to check which was the last parking visited by the ant.
+When dealing with a heterogeneous ﬂeet, another concern is the allocation process of
+the depots during the construction of the route. Until now, the depots were considered
+equivalent and it made no diﬀerence for an ant to start or to come back to one or another
+depot. This is no longer the case with a heterogeneous ﬂeet. Considering all the depots
+successively in one sequence would always favor the same vehicles which is not optimal.
+Therefore, to allow full exploration, each vehicle is drawn at random at the beginning of a
+new tour (lines 5 and 21).
+5.4
+Multi-trip
+Lots of companies operate continuously seven days a week. The operating day can be long
+or even unbounded.
+Therefore, the vehicles are allowed to come back to the depot for
+replenishment (lines 17-23). The depot is managed as a client to be served and the service
+corresponds to the replenishment. A speciﬁc operating time for replenishment, still with
+constant and variable parts, is associated to each vehicle (ok
+D line 19). After this operation,
+the vehicle is available again and can start a new trip to a new client. While in the basic
+algorithm the initial departure time from the depot is set to the beginning of the planning
+horizon, this can no longer be the case when the same vehicle is allowed to start new trips.
+After each replenishment and before a new eventual departure, the initial time associated to
+the vehicle must be reset to the time of completion of the last replenishment (lines 19 and
+23).
+Note that the next vehicle to be considered by default for departure after a replenishment
+in Algorithm 1 is drawn at random. Another strategy would be to restart with the vehicle
+which was just replenished. This would lead to a more intensive use of the same vehicles and,
+in some extreme cases, possibly to a reduction in the number of vehicles operating. In our
+context, the ﬂeet belongs to the operator and its size cannot be instantaneously adapted.
+Minimizing the number of vehicles on the road does not lead to signiﬁcant beneﬁts since
+it has no impact on the ﬁxed costs. Moreover, it could be a counterproductive strategy
+when the ﬂeet and the demands are highly heterogeneous. We have therefore integrated a
+mechanism in the ACS algorithm to permit the intensiﬁcation of the use of the same vehicles.
+When selecting the next Dk as a starting point, the last vehicle used in the current sol

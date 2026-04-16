@@ -1,0 +1,202 @@
+, the impact of intensifying the use of a same truck is not clear.
+It has no signiﬁcant impact for this instance when responsiveness is the main criterion (case
+F vs. case H), and it has a slightly negative impact when the criterion is distance (case K
+vs. case L).
+Table 2 provides more details with regard to the operational quality of the results in the
+deterministic context for the responsiveness criterion. Case F provides a solution with an
+objective value of only 9h03 in 30 seconds of CPU computation time. Very few new improved
+solutions are found when the allocated CPU time increases. A similar result is obtained in
+ﬁve minutes (case E). 9h00 is the best solution found (case C) but it requires one hour
+of computation time. This solution is depicted in Figure 3. This is a strong performance
+with respect to three benchmarks.
+First, imagine that the airport applies a traditional
+FIFO strategy (case A) as described in the previous section. The total responsiveness would
+19
+
+
+=== PAGE 20 ===
+Figure 3: Optimal schedule (Case C)
+amount for 11h33, meaning that the ACS approach is able to improve responsiveness by
+22%. Second, if it was possible to apply the second strategy FIFO2, which is not realistic
+in a dynamic context, FIFO2 would perform better than the FIFO strategy but would still
+remain far less attractive at 10h00, than the ACS solution.
+It shows that a very basic
+heuristic can already provide an interesting solution with respect to the FIFO rule, at least
+when the objective is responsiveness optimization, but also that an Ant Colony can still make
+a signiﬁcant diﬀerence. Finally, we can investigate whether 9h00 is the global optimum.
+Unfortunately we have no tool to prove this. We can still compute a lower bound. Assuming
+that the fastest operating truck is able to serve an aircraft immediately without generating
+idle time, then, based on the quantities to be delivered, it would require at least 6h30 of
+operations (i.e. responsiveness). This corresponds to an average diﬀerence of ﬁve minutes
+per aircraft in comparison with the best ACS solution. Note also that it is a very optimistic
+lower bound since we made two strong assumptions that can clearly not be satisﬁed in this
+context of intense demand.
+Analyzing the performances of the ACS approach when the objective is to minimize the
+distance rather than optimizing the responsiveness is also enlightening. Cases I to L indicate
+that the ACS algorithm is able to ﬁnd good solutions with respect to this other criterion. The
+best result with a distance of 17877m is obtained after one hour (case I). A very close result,
+17968m, is already obtained after 30 seconds (case K). More interestingly, we can compare the
+solutions when we use distance instead of responsiveness as the criterion. These two diﬀerent
+objectives lead to drastically diﬀerent tours. Assuming that optimizing the responsiveness is
+of crucial importance for some companies, minimizing the distance in the hope that a shorter
+set of routes will imply a higher speed of service and a better responsiveness is erroneous.
+In our case, the shortest tour (case I) is associated with a responsiveness of 16h03, which is
+far inferior to the most responsive solution (case C: 9h00). Even the typical FIFO strategy
+(case A) does better with 11h33. We also observe a large variation of the responsiveness
+for solutions of approximately the same length, which in itself shows that responsiveness
+is not directly linked to distance. When (tight) time windows exist, two elements explain
+this diﬀerence. First, the time associated with a trip is no longer calculated as the distance
+divided by the speed since the vehicles have to wait if they arrive in advance by a client.
+Distance divided by speed is only a lower bound. Second, responsiveness time is also lower
+than the time for the fastest tour since responsiveness is measured with respect to the start
+of the client time window and not with respect to the time of departure from the previous
+client; i.e. a subset of this last interval. Conversely, when optimizing the distance is of
+crucial importance, optimizing the responsiveness is not an adequate strategy. It leads to
+solutions 50% longer for this instance (17876m vs. 27253m) or as high as two times longer
+20
+
+
+=== PAGE 21 ===
+if we compare with the FIFO strategy (35550m). When responsiveness is the criterion in
+opposition to distance, we also observe that the aircrafts do not need to wait as long before
+being served, and that there is a vast buﬀer period before planned departure. Moreover, the
+average idle time per aircraft is reduced by a factor four when responsiveness is considered
+instead of distance. This is an important and attractive operational result.
+I
+J
+K
+L
+M
+N
+O
+Objective:
+Dist.
+Dist.
+Dist.
+Dist.
+Resp.
+Resp.
+Resp.
+Algorithm:
+ACS
+ACS
+ACS
+ACS
+FIFO
+Oracle
+ACS
+Max CPU time :
+1h
+5’
+30”
+30”
+-
+1h
+42x40”
+Local searches:
+Yes
+Yes
+Yes
+Yes
+No
+Yes
+Yes
+Back to depot:
+-
+-
+-
+-
+-
+Dynamic
+Dynamic
+Truck intensity:
+0
+0
+0
+1
+0
+0
+0
+Responsiveness:
+16h03
+13h44
+13h44
+14h24
+11h03
+8h038
+8h59
+Distance (m):
+17876.8
+17967.6
+17967.6
+18134.6
+37068
+27122
+29268.1
+Average idle time:
+18’
+13.4’
+13.4’
+14.7’
+8’
+3.4’
+4’
+Max idle time:
+46.2’
+41.9’
+41.9’
+45’
+27.6’
+25.4’
+26’
+Average safety time:
+27.8’
+32.5’
+32.5’
+31.1’
+34’
+38.6’
+37.9’
+Min safety time:
+3.2’
+4.9’
+4.9’
+3’
+-4.3’
+4’
+3.4’
+Table 3: Airport case: distance and dynamic contexts
+The previous results only discuss the algorithm in a static context for which all the
+information is known precisely in advance. With cases M, N and O, we now discuss the
+performances of the approach in a stochastic environment. Throughout the operating day,
+new events occur. The landing time and the beginning of each time window are not known
+with certainty. To simulate this, we draw at random the beginning of each time windows
+ai. We use a Gaussian probability distribution centered on the previously used expectation
+time and with a standard deviation corresponding to ﬁfteen minutes. When the size of the
+time windows after shifting its beginning becomes greater than one hour or smaller than 30
+minutes, the (expected) end of the time window is adjusted to maintain a standard one hour
+window for the operations. If the resulting ai is smaller than the previously expected time,
+the dispatcher is informed ten minutes before ai. Otherwise, he gets the new information
+at the initially expected time of arrival. The true quantities to deliver are communicated
+precisely at the beginning of each (new) time window. They are computed thanks to a normal
+distribution centered on the expected quantities and with a standard deviation corresponding
+to 10% of the expected quantities. Finally, the service time is sometimes faster and sometimes
+slower than expected by a value distributed once more according to a normal distribution
+N(0,3). This information is made available during the service. All in all, in this simulation
+scheme, new information appears at 42 diﬀerent moments during the operating day of the
+30 ﬂights.
+Case O provides the ﬁnal results obtained when a new optimization is performed each
+time a new piece of information appears, leading to 42 runs. The shortest delay between the
+arrival of two new pieces of information was one minute. Due to this level of granularity,
+each new optimization was allowed to run for only a fraction of one minute, more precisely 40
+seconds. This ensures real time operations. Thanks to our approach, it was always possible
+to adapt the planning to serve all the ﬂights in time. We also observe that the results are
+very good. To determine this, ﬁrst note that the average idle time is very low and the safety
+time very large, which is attractive to the airports. The minimum safety time of only 3.4
+21
+
+
+=== PAGE 22 ===
+minutes is linked to a sole ﬂight for which a truck experienced a very long unanticipated
+breakdown. We can also compare the case O with the cases M and N. Case N corresponds
+to the best known estimation of the solution for th

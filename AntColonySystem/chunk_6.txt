@@ -1,0 +1,204 @@
+ution
+is selected with a probability ζ; otherwise, another vehicle is drawn at random. By setting
+ζ to zero, we obtain the original algorithm.
+5.5
+Split delivery
+Split delivery also requires some adaptations of the ACS algorithm (lines 26-30). First, a
+client j is no longer rejected from the neighborhood Ni when the only constraint unsatisﬁed is
+a remaining capacity inferior to the demand. However, to speed up the optimization process,
+we still reject vehicles that would not be able to deliver a quantity larger than a minimal
+threshold set by the operator. Due to the initialization and travel times, such solutions
+would later be discarded and the work of the ant lost. Next, the client is not marked visited
+(to be opposed to line 34)and its demand is reduced by the quantity already delivered (line
+12
+
+
+=== PAGE 13 ===
+28). Moreover, if we don’t want to allow several simultaneous deliveries, the beginning of
+the time window for client j is set to the time of the end of the last partial delivery (line
+29). To the process, client j appears as a “new” classical client yet to be served. This
+strategy is valid since only one ant is used to construct all the routes for each vehicle and
+the construction process is sequential. Finally the ﬁrst vehicle has no other alternative (due
+to line 30) than to next go back to the depot, where, thanks to the multi-trip strategy, it
+can reset its capacity and hit the road again to serve any unserved client.
+5.6
+Dynamic stochastic environment
+We now extend the previous algorithm to the dynamic stochastic context.
+In our ap-
+proach, new events and new information can be integrated into the process over time. As in
+Gendreau et al. (1999), our strategy is to restart the optimizer each time new information
+is available. Another strategy, as in Montemanni et al. (2005), would be to slice the days
+into sub-periods and to optimize again only at these moments. The former has the advan-
+tage of taking into account any change immediately. Since responsiveness is the main goal,
+delaying the use of information would be counterproductive. On the other hand, if the pro-
+cess requires a long computation time to get a good (local) optimum, optimizing too often
+with a strict limit on computation time would risk reducing the quality of the intermediate
+plannings. Fortunately, our heuristic is fast and, at least for our experiments, good results
+can be achieved very quickly on modern computers.
+Implementing dynamism into the ACS requires several adaptations. First, for each opti-
+mization, vehicles can be anywhere and not only at the depot. Second, we must keep track
+of the remaining capacity of each vehicle for each new start. The vehicle capacity and loca-
+tion questions are simply solved by a correct initialization of the ACS parameters (line 6).
+Instead of the full nominal capacity, each vehicle starts with the real current capacity. In-
+stead of starting from the depots (lines 7-8,22), we set the departure locations at the current
+observed location for each vehicle. If a new piece of information requesting an optimization
+arrives while a vehicle is still serving a client or moving to another location, then this vehicle
+is marked available only after completing this current operation. It is therefore important
+to associate with each vehicle the time wi at which it becomes available again (with i being
+the vehicle location after completing the current operation). This time can be later than the
+time at which the new optimization occurs. We also have to determine the location i and
+the remaining capacity rk of each vehicle after the completion of the operation in progress.
+In order to facilitate these reoptimizations and to handle stochasticity, we designed a
+PhP interface. Before each new optimization, the code computes the theoretical situation
+according to the previous planning i.e. the locations of the vehicles, the remaining capacities
+and the demands still to satisfy. The dispatcher only has to adjust the data, if necessary,
+based on new information he has received since the last optimization.
+5.7
+A small illustration
+To illustrate the previous mechanisms, imagine that two trucks are available to serve three
+ﬂights as depicted in Figure 2. The distances, corresponding to the travel times, are indicated
+on each arc. The quantities q, time windows and types of the aircrafts are indicated beside
+each node. The ﬂeet is heterogeneous. Truck 1 has a lower capacity (Q = 20) than Truck
+2 (Q = 25) but has a faster service time when the quantity to deliver is less than 14 units.
+13
+
+
+=== PAGE 14 ===
+Truck 1 (resp. Truck 2) is not convenient and cannot be used for Boeing 777 aircrafts (resp.
+Boeing 432). This implies that Flight 1 (resp. Flight 2) can only be served by Truck 2
+(resp. Truck 1). Moreover, we assume in this example that Truck 1 is initially still operating
+somewhere and cannot be used before one unit of time has passed.
+Split deliveries are
+allowed, but any delivery must be larger than ﬁve units when the demand is larger.
+Figure 2: A small illustration
+When constructing a path, an ant could consider up to 60 distinct sequences of moves
+before reaching a feasible solution or a ﬁrst infeasibility. If the trucks are allowed to return
+to the depot for replenishment only when there are no more ﬂights in their neighborhood,
+then only two paths are feasible. These two solutions are represented in the top right corner
+of Figure 2 (Ants 1 and 2). Four other solutions are feasible when the trucks may come
+back to the depot at any time (d0 > 0 - Ants 3 up to 6). Solution 1 is detailed in Table 1.
+In solution 1, a ﬁrst truck, Truck 1, is initially selected at random to take into account the
+heterogeneity of the ﬂeet. Truck 1 leaves the depot (D1) to ﬁrst serve Flight 2 and then
+Flight 3. Responsiveness after serving Flight 2 is equal to 18; the diﬀerence between the
+completion time w (25) and the start of the time window (7). When arriving at Flight 3’s
+location, its remaining capacity is 10 units while the demand is larger (15 units). A split
+delivery occurs for 10 units. Truck 1 completes this ﬁrst part of the delivery at time 46.
+The second part of the delivery cannot start before the completion of the ﬁrst part. Flight 3
+will appear in the sequel as a new client with a time window starting at time 46 and with a
+demand of 5 units of fuel. Truck 1 must then go back, empty, to the depot. Truck 2 is then
+considered. It leaves at time 0 (w = 0) to reach Flight 1’s location. After serving Flight 1,
+it goes to Flight 3 to serve the ﬁve remaining units of fuel. It arrives at Flight 3’s location
+at time 43 but has to wait until time 46 because Truck 1 is, according to the time line, still
+serving Flight 3 (new time window). All the services (s) started after the beginning a of
+each time window and were completed before the end b. The responsiveness R amounts to
+97 units of time and the traveled distance T to 37 units.
+Ant 2 illustrates a multi-trip solution. The ant ﬁrst starts with Truck 2 and visits Flight
+1. The remaining capacity (ﬁve units of fuel) is not large enough to serve any other ﬂights
+and the truck must come back to the depot for replenishment. Truck 1 is then operated to
+fully serve Flight 2 and partially serve Flight 3. To complete Flight 3’s delivery, Truck 2
+restarts a new trip after replenishment. As for Ant 1, the ﬁrst part of Flight 3’s delivery
+ends at time 46. Due to its ﬁrst tour and the replenishment, Truck 2 may only arrive at time
+14
+
+
+=== PAGE 15 ===
+Path sequence
+D1
+2
+3
+[D1]
+D2
+1
+3
+[D2]
+Time window: start (a)
+0
+7
+10
+0
+0
+5
+10→46
+0
+Time window: end (b)
+96
+87
+90
+96
+96
+85
+90
+96
+Travel time (t)
+0
+7
+4
+6
+0
+5
+9
+6
+Service starts at (s)
+0
+8
+29
+52
+0
+5
+43→46
+66
+Service duration (o)
+0
+17
+17
+32
+0
+29
+14
+34
+Service completed at (w)
+1
+25
+46
+84
+0
+34
+60
+100
+Quantity delivered (q)
+0
+10
+10
+-20
+0
+20
+5
+-25
+Truck remaining capacity (r)
+20
+10
+0
+20
+25
+5
+0
+25
+Responsiveness (R)
+0
+18
+18
+18
+18
+47
+97
+97
+Distance (T)
+0
+7
+11
+17
+17
+22
+31
+37
+Table 1:

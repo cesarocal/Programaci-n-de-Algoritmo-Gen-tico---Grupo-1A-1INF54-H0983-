@@ -1,0 +1,232 @@
+. Indeed, the problems under
+consideration from one optimization to the next one generally share lots of characteristics
+since the most recent one is an adaptation of the previous one. The optimal paths of the
+ﬁrst problem are therefore good candidates for the next problem. Since the attractiveness
+of a path is stored in the pheromone matrix, the idea is to stop initializing this matrix by
+only using the results of a heuristic, but instead by mixing it with past information. For
+each pair of clients which appear both in the old and in the new problem, the corresponding
+pheromone matrix entry is initialized to the following value:
+τij = (1 −γ)τ old
+ij + γτ0
+where τ old
+ij
+is the pheromone intensity associated to the path between client i and client j
+at the end of the previous optimization, τ0 is the default pheromone value computed by the
+initialization heuristic and γ is a parameter controlling the level of conservation. We slightly
+adapt this scheme. Since the clients are typically not exactly the same from one optimization
+to the next, the orders of magnitude of τ old
+ij
+and τ0 could be diﬀerent. We therefore use this
+formula instead:
+τij = (1 −γ)τ old
+ij
+τ0
+τ old
+0
++ γτ0
+where τ old
+0
+is the initial value of the pheromones in the previous optimization. τ old
+0
+is used in
+the local updating scheme and can be seen as the basic or neutral level of pheromones.
+τ0
+τ old
+0
+can then be interpreted as a scaling factor to the new context.
+7
+Results
+The approach is tested on real and simulated instances. The code is written in Java. All
+results were obtained on a standard laptop operating Windows 8. An online web interface
+17
+
+
+=== PAGE 18 ===
+written in PhP is also available. We further analyze the performance of the ACS using two
+sets of benchmarks. To our knowledge, no benchmark exists that allows us to simultaneously
+consider all the characteristics of the types of problems we are faced with here, especially
+in regard to the responsiveness criterion. We therefore start from a set of well-known VRP
+benchmarks used in the literature and initially designed for the distance criterion. Each of
+these two sets of benchmarks exhibits some of the characteristics of our problem. In the ﬁrst
+case, we analyze the impact of a dynamic strategy when new events/demands are added into
+the schedule during operations. In the second case, we work in a static context on VRPs
+with time windows using one set of Solomon’s benchmarks. In both cases, we endeavor to
+replicate results found in the literature when the criterion is distance, and we extend them
+to responsiveness.
+7.1
+Airport problem
+We ﬁrst test the ACS on a real case provided by our partner: Liege Airport (LGG). LGG
+is the 8th biggest cargo airport in Europe and received the World’s Best Cargo Airport
+Airport of the Year Award for the quality of its management in Singapore in 2013. The goal
+is to develop a decision system to optimize the journey of the refueling trucks. We consider
+a representative night of operations. 30 aircrafts, of seven diﬀerent models, are expected
+during the next three hours and must be refueled within one hour of landing. During this
+tight schedule, there are many time window overlaps and possibilities to plan the truck
+journeys. Up to ﬁve trucks were used during this night but some of them are not able to
+serve certain types of aircraft. The service operating time depends on the aircraft and on
+the selected truck and takes ten minutes on average. The parking spaces are mainly along a
+straight road, which induces lots of symmetries in the problem. Split deliveries may occur if
+the truck can serve at least 1500L. For conﬁdentiality reasons, the ﬂight names are replaced
+by fake names and we set the start of the operations at time zero. Data is available on our
+website.
+The ACS algorithm is initialized with standard values for VRP. Exploration (q), closeness
+weight (β) and pheromone update (ρ) parameters are respectively set to 0.9, 1 and 0.1. The
+longer the optimization process runs, the higher the probability is to ﬁnd the optimal or at
+least an improved solution. However, there is a limited amount of time available in practice
+to ﬁnd a solution. It is especially limited in the dynamic context. We therefore limit the
+computation time in all the experiments. We test diﬀerent reasonable limits as speciﬁed in
+the next tables. Ten ants start from the colony at each iteration.
+Many simulations were conducted using this conﬁguration and some variations.
+The
+most representative ones are displayed in Table 2 and Table 3. The selected parameters are
+given in the ﬁrst ﬁve lines of each table, while the next lines are the corresponding results.
+Table 2 summaries the results for the responsiveness criterion in a deterministic context.
+Table 3 provides results when the criterion is distance. Table 3 also contains results for the
+responsiveness criterion in a dynamic case where new information is provided throughout
+the day and new optimizations occur. Responsiveness is the total time the 30 aircrafts must
+stay on the ground before refueling is completed. It includes the operating service time and
+the idle time, where the idle time is the time spent by the aircraft waiting for the arrival of
+a truck. We provide the average and maximal idle time per aircraft. We also provide the
+safety time as a measure, on average and as a minimum, of time left before the theoretical
+departure. This can be seen as a buﬀer that could absorb an unexpected event or as an
+18
+
+
+=== PAGE 19 ===
+opportunity to reduce the time on the ground, therefore saving costs.
+A
+B
+C
+D
+E
+F
+G
+H
+Objective:
+Resp.
+Resp.
+Resp.
+Resp.
+Resp.
+Resp.
+Resp.
+Resp.
+Algorithm:
+FIFO
+FIFO2
+ACS
+ACS
+ACS
+ACS
+ACS
+ACS
+Max CPU time :
+-
+-
+1h
+5’
+5’
+30”
+30”
+30”
+Local searches:
+No
+No
+Yes
+No
+Yes
+Yes
+Yes
+Yes
+Back to depot:
+-
+-
+Dynamic
+Dynamic
+Dynamic
+Dynamic
+None
+Dynamic
+Truck intensity:
+0
+0
+0
+0
+0
+0
+0
+1
+Responsiveness:
+11h33
+10h00
+9h00
+9h08
+9h03
+9h03
+9h04
+9h03
+Distance (m):
+35550
+32253
+26984
+27252.8
+27928.2
+27928.2
+25422.6
+27129.3
+Average idle time:
+9.1’
+6.2’
+4.2’
+4.4’
+4.2’
+4.2’
+4.2’
+4.2’
+Max idle time:
+25.1’
+30.1’
+32.5’
+28.9’
+34’
+34’
+34’
+34’
+Average safety time:
+37.1’
+40’
+41.9’
+41.7’
+41.9’
+41.9’
+41.8’
+41.9’
+Min safety time:
+17.2’
+13.8’
+3.7’
+5.6’
+2.2’
+2.2’
+2.2’
+2.2’
+Table 2: Airport case: responsiveness criterion in a deterministic context
+Some general comments may be made regarding these simulations. First, thanks to the
+ACS, it is always possible to organize the trips so that each ﬂight is served on time, so that
+the average idle time is low and so that the average safety time is high. This is already a
+signiﬁcant outcome for the airports. This instance is complex. Many ﬂights arrive in the
+same short interval of time and the total demand corresponds roughly to the total ﬂeet
+capacity. In this context, multiple trips have a high cost and each truck should therefore be
+used at its maximum capacity during each tour. We observe that each of the ﬁve trucks are
+operated. We also observe that split deliveries never occur in the optimal solutions, which
+can be explained by the extra (constant) time required to operate more than one truck for
+a same client that makes this operation unattractive. Note, however, that one truck returns
+to the depot for replenishment before restarting for serving a late ﬂight. Applying local
+searches always improves the quality of the solutions and speeds up the process (compare
+case E vs. case D). Allowing the trucks to come back to the depot at any time (d0 > 0 and
+a dynamic strategy based on the remaining vehicle capacity) has a slightly positive impact
+(compare case F vs. case G). Actually, there is no major diﬀerence in the quality of the
+solutions if the optimization process is allowed to run longer, but this simulation and the
+tests on the Solomon’s benchmarks later indicate that the process often converges faster. As
+mentioned previously in the illustration with a small example, it also important in order to
+cover all the domain. Finally
