@@ -59,16 +59,9 @@ public class AGAdapter {
             input.incrementarOcupacionGlobalAlmacen(e.getKey(), e.getValue());
         }
 
+        output.calcularMetricaUnificada();
         output.setEstadoCapacidadesVuelos(capVuelos);
         output.setEstadoOcupacionAlmacenes(ocupAlmacenes);
-
-        // Métrica: fitness del mejor individuo (menor es mejor en el AG)
-        // Extraemos el fitness de la última evaluación (no directamente accesible,
-        // lo aproximamos como 0 si todas las rutas tienen solución)
-        long sinRuta = enviosPlanificados.stream()
-                .filter(e -> mapaRutas.get(e.getOrigenOaci() + "-" + e.getId()) == null)
-                .count();
-        output.setMetricaCalidad(sinRuta); // 0 = perfecto, >0 = envíos sin ruta
 
         return output;
     }

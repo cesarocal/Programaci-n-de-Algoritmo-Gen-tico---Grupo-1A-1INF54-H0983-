@@ -277,11 +277,21 @@ public class Simulador {
                         envio.getFechaHoraRegistro(), ruta.tiempoLlegadaFinal);
                 long horas   = minutos / 60;
                 long mins    = minutos % 60;
-                boolean fuera = horas > limiteHoras;
 
+                // Verificar si la ruta no alcanzó el destino final (ruta parcial)
+                String destinoAlcanzado = ruta.vuelosUsados.isEmpty()
+                        ? envio.getOrigenOaci()
+                        : ruta.vuelosUsados.get(ruta.vuelosUsados.size() - 1).getDestinoOaci();
+                boolean destinoIncompleto = !destinoAlcanzado.equals(envio.getDestinoOaci());
+
+                boolean fuera = horas > limiteHoras || destinoIncompleto;
                 if (fuera) hayColapso = true;
 
-                sb.append("ESTADO: ").append(fuera ? "[!!!] COLAPSO (Fuera de SLA)" : "[OK] A TIEMPO").append("\n");
+                String estadoDetalle = destinoIncompleto
+                        ? "[!!!] COLAPSO (Ruta incompleta, detenido en " + destinoAlcanzado + ")"
+                        : fuera ? "[!!!] COLAPSO (Fuera de SLA)" : "[OK] A TIEMPO";
+
+                sb.append("ESTADO: ").append(estadoDetalle).append("\n");
                 sb.append("Tiempo real: ").append(horas).append("h ").append(mins).append("m")
                   .append(" | Llegada: ").append(ruta.tiempoLlegadaFinal.format(FMT)).append("\n");
                 sb.append("Ruta (").append(ruta.vuelosUsados.size()).append(" vuelos):\n");
@@ -364,12 +374,18 @@ public class Simulador {
                         long minutos = ChronoUnit.MINUTES.between(
                                 envio.getFechaHoraRegistro(), ruta.tiempoLlegadaFinal);
                         long h = minutos / 60, m = minutos % 60;
-                        boolean fuera = h > lim;
+                        String destAlcanzado = ruta.vuelosUsados.isEmpty()
+                                ? envio.getOrigenOaci()
+                                : ruta.vuelosUsados.get(ruta.vuelosUsados.size() - 1).getDestinoOaci();
+                        boolean incompleto = !destAlcanzado.equals(envio.getDestinoOaci());
+                        boolean fuera = h > lim || incompleto;
                         enviosConRuta++;
                         if (fuera) enviosColapso++; else enviosATiempo++;
 
-                        pw.printf("    ESTADO : %s%n",
-                                fuera ? "[!!!] COLAPSO (Fuera de SLA)" : "[OK] A TIEMPO");
+                        String estadoStr = incompleto
+                                ? "[!!!] RUTA INCOMPLETA (parada en " + destAlcanzado + ")"
+                                : fuera ? "[!!!] COLAPSO (Fuera de SLA)" : "[OK] A TIEMPO";
+                        pw.printf("    ESTADO : %s%n", estadoStr);
                         pw.printf("    Tiempo : %dh %dm | SLA: %dh | Llegada: %s%n",
                                 h, m, lim, ruta.tiempoLlegadaFinal.format(FMT));
                         pw.println("    Ruta:");

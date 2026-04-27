@@ -1,6 +1,4 @@
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
@@ -146,7 +144,7 @@ public class ACSAdapter {
                 input.incrementarOcupacionGlobalVuelo(claveVuelo, envio.getCantidadMaletas());
 
                 llegadaFinal  = llegada;
-                tiempoActual  = llegada.plusMinutes(10);
+                tiempoActual  = llegada; // Sin +10min: consistente con VueloSelector.getDisponibilidadAbsoluta
             }
 
             if (!vuelosUsados.isEmpty()) {
@@ -155,8 +153,7 @@ public class ACSAdapter {
             }
         }
 
-        // Registrar métrica de calidad (responsiveness ACS)
-        output.setMetricaCalidad(AntColonySystem.calcularResponsiveness(solACS, inputACS));
+        output.calcularMetricaUnificada();
         output.setEstadoCapacidadesVuelos(capVuelos);
         output.setEstadoOcupacionAlmacenes(capAlmacenes);
 

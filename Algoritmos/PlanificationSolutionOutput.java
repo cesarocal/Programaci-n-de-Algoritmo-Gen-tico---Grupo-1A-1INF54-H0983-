@@ -76,7 +76,43 @@ public class PlanificationSolutionOutput {
         return estadoOcupacionAlmacenes;
     }
 
-    // ---- Métricas ----
+    // ---- Métrica unificada ----
+
+    /**
+     * Calcula y almacena la métrica de calidad unificada para ambos algoritmos:
+     *
+     *   métrica = promedio de (horaLlegada − horaRegistro) en MINUTOS,
+     *             considerando solo los envíos que tienen ruta y alcanzaron su destino.
+     *
+     * - Menor valor = mejor solución (entregas más rápidas en promedio).
+     * - Los envíos sin ruta o con ruta incompleta no se incluyen en el promedio
+     *   (ya se reflejan en las estadísticas de colapso del reporte).
+     *
+     * Es idéntica para AG y ACS, lo que permite comparación directa en la
+     * experimentación numérica.
+     */
+    public void calcularMetricaUnificada() {
+        long sumaMinutos = 0;
+        int  conteo      = 0;
+
+        for (EnvioAlgoritmo envio : enviosPlanificados) {
+            ResultadoRuta ruta = getRuta(envio);
+            if (ruta == null) continue;
+
+            // Solo contar envíos que llegaron al destino correcto
+            if (ruta.vuelosUsados.isEmpty()) continue;
+            String destinoAlcanzado =
+                    ruta.vuelosUsados.get(ruta.vuelosUsados.size() - 1).getDestinoOaci();
+            if (!destinoAlcanzado.equals(envio.getDestinoOaci())) continue;
+
+            long minutos = java.time.temporal.ChronoUnit.MINUTES.between(
+                    envio.getFechaHoraRegistro(), ruta.tiempoLlegadaFinal);
+            sumaMinutos += minutos;
+            conteo++;
+        }
+
+        this.metricaCalidad = conteo > 0 ? (double) sumaMinutos / conteo : Double.MAX_VALUE;
+    }
 
     public double getMetricaCalidad() { return metricaCalidad; }
     public void setMetricaCalidad(double m) { this.metricaCalidad = m; }

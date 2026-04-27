@@ -1,10 +1,11 @@
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * ACS adaptado según el paper "An Ant Colony System for Responsive Dynamic Vehicle Routing"
- * de M. Schyns, que a su vez sigue a Gambardella et al. (1999).
+ * de M. Schyns (Gambardella et al. 1999).
  *
  * Usa PlanificationProblemInputACS y PlanificationSolutionOutputACS internamente.
  * El adaptador ACSAdapter se encarga de la traducción hacia/desde las estructuras del AG.
@@ -174,30 +175,30 @@ public class AntColonySystem {
     //  Auxiliares
     // =======================================================================
 
+    /**
+     * BUG FIX: Ahora verifica tiempoLimite usando candidatosViables,
+     * que sí aplica el filtro de SLA correctamente.
+     */
     private static boolean existeClienteAlcanzable(Ruta ruta, PlanificationProblemInputACS input) {
         for (Pedido p : input.getPedidos()) {
-            if (!ruta.getUbicacionActual(p).equals(p.getDestino())) {
-                for (Vuelo v : input.getVuelosDesdeLinea(ruta.getUbicacionActual(p))) {
-                    if (!ruta.haVisitadoAeropuerto(p, v.getDestino())
-                            && v.getCapacidad() - ruta.getOcupacionVuelo(v.getId()) >= p.getCantidadMaletas()) {
-                        return true;
-                    }
-                }
+            if (ruta.getUbicacionActual(p).equals(p.getDestino())) continue;
+            // Usamos candidatosViables para que el filtro de SLA se aplique
+            if (!VueloSelector.candidatosViables(p, ruta, input).isEmpty()) {
+                return true;
             }
         }
         return false;
     }
 
+    /**
+     * BUG FIX: Ahora verifica tiempoLimite usando candidatosViables.
+     */
     private static Pedido seleccionarPedidoActivo(Ruta ruta, PlanificationProblemInputACS input) {
         List<Pedido> candidatos = new ArrayList<>();
         for (Pedido p : input.getPedidos()) {
             if (ruta.getUbicacionActual(p).equals(p.getDestino())) continue;
-            for (Vuelo v : input.getVuelosDesdeLinea(ruta.getUbicacionActual(p))) {
-                if (!ruta.haVisitadoAeropuerto(p, v.getDestino())
-                        && v.getCapacidad() - ruta.getOcupacionVuelo(v.getId()) >= p.getCantidadMaletas()) {
-                    candidatos.add(p);
-                    break;
-                }
+            if (!VueloSelector.candidatosViables(p, ruta, input).isEmpty()) {
+                candidatos.add(p);
             }
         }
         if (candidatos.isEmpty()) return null;
@@ -231,38 +232,81 @@ public class AntColonySystem {
         return new Ruta(limpias);
     }
 
+    /**
+     * BUG FIX (causa principal): BFS multi-hop con verificación de tiempoLimite (SLA)
+     * en CADA nodo del árbol de búsqueda.
+     *
+     * Versión anterior: solo filtraba por capacidad → podía insertar vuelos que
+     * aterrizaban después del plazo comprometido.
+     *
+     * Versión corregida: la cola transporta el tiempo real de disponibilidad en cada
+     * nodo (igual que getDisponibilidadAbsoluta). Cada vuelo candidato se simula para
+     * calcular su llegada absoluta y se descarta si supera tiempoLimite.
+     */
     private static Ruta intentarInsercionMultiHop(Ruta ruta, PlanificationProblemInputACS input) {
         final int MAX_SALTOS = 5;
+
         for (Pedido p : input.getPedidos()) {
             if (ruta.getUbicacionActual(p).equals(p.getDestino())) continue;
 
             String origen  = ruta.getUbicacionActual(p);
             String destino = p.getDestino();
 
-            Queue<List<Vuelo>> cola      = new LinkedList<>();
-            Set<String>        visitados = new HashSet<>();
-            cola.add(new ArrayList<>());
+            // Tiempo real en que la maleta ya está disponible en el nodo actual
+            LocalDateTime tiempoEnOrigen = VueloSelector.getDisponibilidadAbsoluta(p, ruta);
+
+            // Cola BFS: Object[]{ List<Vuelo> camino, LocalDateTime tiempoEnNodo }
+            Queue<Object[]> cola = new LinkedList<>();
+            cola.add(new Object[]{new ArrayList<Vuelo>(), tiempoEnOrigen});
+
+            Set<String> visitados = new HashSet<>();
             visitados.add(origen);
 
             bfsLoop:
             while (!cola.isEmpty()) {
-                List<Vuelo> camino = cola.poll();
+                Object[] estado = cola.poll();
+                @SuppressWarnings("unchecked")
+                List<Vuelo> camino        = (List<Vuelo>) estado[0];
+                LocalDateTime tiempoEnNodo = (LocalDateTime) estado[1];
+
                 if (camino.size() >= MAX_SALTOS) continue;
-                String desde = camino.isEmpty() ? origen : camino.get(camino.size() - 1).getDestino();
+
+                String desde = camino.isEmpty()
+                        ? origen
+                        : camino.get(camino.size() - 1).getDestino();
 
                 for (Vuelo v : input.getVuelosDesdeLinea(desde)) {
                     if (visitados.contains(v.getDestino())) continue;
-                    if (v.getCapacidad() - ruta.getOcupacionVuelo(v.getId()) < p.getCantidadMaletas()) continue;
+
+                    // Simular salida y llegada absolutas desde este nodo
+                    LocalDateTime salida = tiempoEnNodo.with(v.getHoraSalida());
+                    if (salida.isBefore(tiempoEnNodo)) salida = salida.plusDays(1);
+                    LocalDateTime llegada = salida.with(v.getHoraLlegada());
+                    if (llegada.isBefore(salida)) llegada = llegada.plusDays(1);
+
+                    // ── VERIFICACIÓN SLA ────────────────────────────────────────────
+                    // Si la llegada a ESTE nodo intermedio ya supera el plazo, la rama
+                    // completa es inviable: ningún vuelo posterior llegará a tiempo.
+                    if (llegada.isAfter(p.getTiempoLimite())) continue;
+
+                    // Verificar capacidad (clave con fecha, igual que candidatosViables)
+                    String flightKey = v.getId() + "-" + salida.toLocalDate();
+                    int usoLocal  = ruta.getOcupacionVuelo(flightKey);
+                    int usoGlobal = input.getOcupacionGlobal(flightKey);
+                    if (v.getCapacidad() - (usoLocal + usoGlobal) < p.getCantidadMaletas()) continue;
 
                     List<Vuelo> nuevoCamino = new ArrayList<>(camino);
                     nuevoCamino.add(v);
 
                     if (v.getDestino().equals(destino)) {
+                        // Camino completo y dentro del SLA: insertar
                         for (Vuelo vi : nuevoCamino) ruta.agregarAsignacion(p, vi);
                         break bfsLoop;
                     }
+
                     visitados.add(v.getDestino());
-                    cola.add(nuevoCamino);
+                    // Propagar el tiempo de llegada sin +10 min (igual que getDisponibilidadAbsoluta)
+                    cola.add(new Object[]{nuevoCamino, llegada});
                 }
             }
         }
