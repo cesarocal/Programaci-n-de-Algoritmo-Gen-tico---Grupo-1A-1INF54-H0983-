@@ -17,10 +17,10 @@ public class Simulador {
 
     // ===== PARAMETROS ADAPTABLES =====
     private static final long   Ta          = 15_000;  // 15 segundos por bloque
-    private static final int    Sa_MINUTOS  = 40;      // salto entre ejecuciones
-    private static final int    K           = 6;       // constante de proporcionalidad
+    private static final int    Sa_MINUTOS  = 60;      // salto entre ejecuciones
+    private static final int    K           = 1;       // constante de proporcionalidad
     private static final int    Sc_MINUTOS  = K * Sa_MINUTOS; // 240 min = 4 horas
-    private static final int    NUM_BLOQUES = 180;     // 180 * 40min = 5 dias
+    private static final int    NUM_BLOQUES = 24;     // 180 * 40min = 5 dias
 
     public static void iniciar(String parametroFecha) {
         Logger.init();
@@ -41,7 +41,7 @@ public class Simulador {
 
         // Detectar fecha inicio
         LocalDateTime fechaInicio = detectarFecha(parametroFecha);
-        LocalDateTime fechaFin = fechaInicio.plusDays(5);
+        LocalDateTime fechaFin = fechaInicio.plusDays(1);
 
         System.out.println(">> Cargando envios [" + fechaInicio + " - " + fechaFin + "]...");
         LectorArchivos.cargarEnvios(inputMaestro, fechaInicio, fechaFin);

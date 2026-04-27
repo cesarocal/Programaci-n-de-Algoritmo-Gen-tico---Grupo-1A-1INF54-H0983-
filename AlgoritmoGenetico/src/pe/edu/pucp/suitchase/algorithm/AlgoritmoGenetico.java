@@ -11,7 +11,7 @@ import java.util.PriorityQueue;
 import java.util.Random;
 
 public class AlgoritmoGenetico {
-    private int tamanoPoblacion = 100;
+    private int tamanoPoblacion = 5;
     private double probCruzamiento = 0.8;
     private double probMutacion = 0.1;
     private Random random = new Random();

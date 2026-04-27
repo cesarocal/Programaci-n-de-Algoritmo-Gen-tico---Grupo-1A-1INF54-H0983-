@@ -1,103 +1,11 @@
-[2026-04-15 17:56:35] === INICIANDO NUEVA EJECUCION ===
-[2026-04-15 17:56:35] Archivo de aeropuertos parseado exitosamente. Capacidad insertada: 0 nodos.
-[2026-04-15 17:56:35] Archivo de planes de vuelo analizado existosamente.
-[2026-04-15 17:56:35] Comenzando a escanear 30 archivos de envíos para ventana [2026-01-02T00:00 - 2026-01-07T00:00]
-[2026-04-15 17:56:38] Progreso de escaneo de envíos: 10 de 30 archivos completados.
-[2026-04-15 17:56:41] Progreso de escaneo de envíos: 20 de 30 archivos completados.
-[2026-04-15 17:56:45] Progreso de escaneo de envíos: 30 de 30 archivos completados.
-[2026-04-15 17:56:45] Escaneo finalizado. Total de pedidos filtrados y retenidos: 2527
-[2026-04-15 17:56:45] Pedidos con vuelos desde origen: 2527/2527
-[2026-04-15 17:56:45] Solucion inicial FIFO: rutas construidas
-[2026-04-15 17:57:00] Solucion inicial FIFO: rutas construidas
-2026-04-15 17:56:39] Solucion inicial FIFO: 20 asignaciones.
-[2026-04-15 17:56:54] Solucion inicial FIFO: 20 asignaciones.
-[2026-04-15 17:57:09] Solucion inicial FIFO: 31 asignaciones.
-[2026-04-15 17:57:24] Solucion inicial FIFO: 19 asignaciones.
-[2026-04-15 17:57:39] Solucion inicial FIFO: 21 asignaciones.
-[2026-04-15 17:57:54] Solucion inicial FIFO: 28 asignaciones.
-[2026-04-15 17:58:09] Solucion inicial FIFO: 23 asignaciones.
-[2026-04-15 17:58:24] Solucion inicial FIFO: 20 asignaciones.
-[2026-04-15 17:58:39] Solucion inicial FIFO: 14 asignaciones.
-[2026-04-15 17:58:54] Solucion inicial FIFO: 22 asignaciones.
-[2026-04-15 17:59:10] Solucion inicial FIFO: 22 asignaciones.
-[2026-04-15 17:59:25] Solucion inicial FIFO: 26 asignaciones.
-[2026-04-15 17:59:40] Solucion inicial FIFO: 20 asignaciones.
-[2026-04-15 17:59:55] Solucion inicial FIFO: 19 asignaciones.
-[2026-04-15 18:00:10] Solucion inicial FIFO: 17 asignaciones.
-[2026-04-15 18:00:25] Solucion inicial FIFO: 7 asignaciones.
-[2026-04-15 18:00:40] Solucion inicial FIFO: 12 asignaciones.
-[2026-04-15 18:00:55] Solucion inicial FIFO: 11 asignaciones.
-[2026-04-15 18:01:10] Solucion inicial FIFO: 3 asignaciones.
-[2026-04-15 18:01:25] Solucion inicial FIFO: 30 asignaciones.
-[2026-04-15 18:01:40] Solucion inicial FIFO: 17 asignaciones.
-[2026-04-15 18:01:55] Solucion inicial FIFO: 22 asignaciones.
-[2026-04-15 18:02:10] Solucion inicial FIFO: 25 asignaciones.
-[2026-04-15 18:02:25] Solucion inicial FIFO: 22 asignaciones.
-[2026-04-15 18:02:40] Solucion inicial FIFO: 16 asignaciones.
-[2026-04-15 18:02:55] Solucion inicial FIFO: 22 asignaciones.
-[2026-04-15 18:03:10] Solucion inicial FIFO: 22 asignaciones.
-[2026-04-15 18:03:26] Solucion inicial FIFO: 26 asignaciones.
-[2026-04-15 18:03:41] Solucion inicial FIFO: 22 asignaciones.
-[2026-04-15 18:03:56] Solucion inicial FIFO: 22 asignaciones.
-[2026-04-15 18:04:11] Solucion inicial FIFO: 29 asignaciones.
-[2026-04-15 18:04:26] Solucion inicial FIFO: 23 asignaciones.
-[2026-04-15 18:04:41] Solucion inicial FIFO: 21 asignaciones.
-[2026-04-15 18:04:56] Solucion inicial FIFO: 13 asignaciones.
-[2026-04-15 18:05:11] Solucion inicial FIFO: 25 asignaciones.
-[2026-04-15 18:05:26] Solucion inicial FIFO: 20 asignaciones.
-[2026-04-15 18:05:41] Solucion inicial FIFO: 26 asignaciones.
-[2026-04-15 18:05:56] Solucion inicial FIFO: 20 asignaciones.
-[2026-04-15 18:06:11] Solucion inicial FIFO: 21 asignaciones.
-[2026-04-15 18:06:26] Solucion inicial FIFO: 18 asignaciones.
-[2026-04-15 18:06:41] Solucion inicial FIFO: 7 asignaciones.
-[2026-04-15 18:06:56] Solucion inicial FIFO: 12 asignaciones.
-[2026-04-15 18:07:11] Solucion inicial FIFO: 11 asignaciones.
-[2026-04-15 18:07:27] Solucion inicial FIFO: 3 asignaciones.
-[2026-04-15 18:07:42] Solucion inicial FIFO: 25 asignaciones.
-[2026-04-15 18:07:57] Solucion inicial FIFO: 23 asignaciones.
-[2026-04-15 18:08:12] Solucion inicial FIFO: 26 asignaciones.
-[2026-04-15 18:08:27] Solucion inicial FIFO: 21 asignaciones.
-[2026-04-15 18:08:42] Solucion inicial FIFO: 21 asignaciones.
-[2026-04-15 18:08:57] Solucion inicial FIFO: 25 asignaciones.
-[2026-04-15 18:09:12] Solucion inicial FIFO: 23 asignaciones.
-[2026-04-15 18:09:27] Solucion inicial FIFO: 18 asignaciones.
-[2026-04-15 18:09:42] Solucion inicial FIFO: 23 asignaciones.
-[2026-04-15 18:09:57] Solucion inicial FIFO: 23 asignaciones.
-[2026-04-15 18:10:12] Solucion inicial FIFO: 22 asignaciones.
-[2026-04-15 18:10:27] Solucion inicial FIFO: 25 asignaciones.
-[2026-04-15 18:10:42] Solucion inicial FIFO: 22 asignaciones.
-[2026-04-15 18:10:58] Solucion inicial FIFO: 23 asignaciones.
-[2026-04-15 18:11:13] Solucion inicial FIFO: 25 asignaciones.
-[2026-04-15 18:11:28] Solucion inicial FIFO: 24 asignaciones.
-[2026-04-15 18:11:43] Solucion inicial FIFO: 15 asignaciones.
-[2026-04-15 18:11:58] Solucion inicial FIFO: 20 asignaciones.
-[2026-04-15 18:12:13] Solucion inicial FIFO: 22 asignaciones.
-[2026-04-15 18:12:28] Solucion inicial FIFO: 22 asignaciones.
-[2026-04-15 18:12:43] Solucion inicial FIFO: 19 asignaciones.
-[2026-04-15 18:12:58] Solucion inicial FIFO: 15 asignaciones.
-[2026-04-15 18:13:13] Solucion inicial FIFO: 14 asignaciones.
-[2026-04-15 18:13:28] Solucion inicial FIFO: 13 asignaciones.
-[2026-04-15 18:13:43] Solucion inicial FIFO: 3 asignaciones.
-[2026-04-15 18:13:58] Solucion inicial FIFO: 28 asignaciones.
-[2026-04-15 18:14:14] Solucion inicial FIFO: 19 asignaciones.
-[2026-04-15 18:14:29] Solucion inicial FIFO: 26 asignaciones.
-[2026-04-15 18:14:44] Solucion inicial FIFO: 22 asignaciones.
-[2026-04-15 18:14:59] Solucion inicial FIFO: 22 asignaciones.
-[2026-04-15 18:15:14] Solucion inicial FIFO: 26 asignaciones.
-[2026-04-15 18:15:29] Solucion inicial FIFO: 21 asignaciones.
-[2026-04-15 18:15:44] Solucion inicial FIFO: 15 asignaciones.
-[2026-04-15 18:15:59] Solucion inicial FIFO: 27 asignaciones.
-[2026-04-15 18:16:14] Solucion inicial FIFO: 23 asignaciones.
-[2026-04-15 18:16:30] Solucion inicial FIFO: 22 asignaciones.
-[2026-04-15 18:16:45] Solucion inicial FIFO: 28 asignaciones.
-[2026-04-15 18:17:00] Solucion inicial FIFO: 21 asignaciones.
-[2026-04-15 18:17:15] Solucion inicial FIFO: 24 asignaciones.
-[2026-04-15 18:17:30] Solucion inicial FIFO: 23 asignaciones.
-[2026-04-15 18:17:45] Solucion inicial FIFO: 19 asignaciones.
-[2026-04-15 18:18:01] Solucion inicial FIFO: 17 asignaciones.
-[2026-04-15 18:18:16] Solucion inicial FIFO: 27 asignaciones.
-[2026-04-15 18:18:31] Solucion inicial FIFO: 23 asignaciones.
-[2026-04-15 18:18:46] Solucion inicial FIFO: 19 asignaciones.
-[2026-04-15 18:19:01] Solucion inicial FIFO: 18 asignaciones.
-[2026-04-15 18:19:16] Solucion inicial FIFO: 18 asignaciones.
-[2026-04-15 18:19:31] Solucion inicial FIFO: 14 asignaciones.
+[2026-04-26 19:03:57] === INICIANDO NUEVA EJECUCION ===
+[2026-04-26 19:03:57] Archivo de aeropuertos parseado exitosamente. Capacidad insertada: 0 nodos.
+[2026-04-26 19:03:57] Archivo de planes de vuelo analizado existosamente.
+[2026-04-26 19:03:57] Comenzando a escanear 30 archivos de envíos para ventana [2026-01-01T00:00 - 2026-01-02T00:00]
+[2026-04-26 19:03:58] Progreso de escaneo de envíos: 10 de 30 archivos completados.
+[2026-04-26 19:03:59] Progreso de escaneo de envíos: 20 de 30 archivos completados.
+[2026-04-26 19:04:00] Progreso de escaneo de envíos: 30 de 30 archivos completados.
+[2026-04-26 19:04:00] Escaneo finalizado. Total de pedidos filtrados y retenidos: 0
+[2026-04-26 19:04:00] Pedidos con vuelos desde origen: 0/0
+[2026-04-26 19:04:00] Completados: 0/0 Asignaciones: 0 Tiempo: 0s
+[2026-04-26 19:04:00] === SIMULACION FINALIZADA ===

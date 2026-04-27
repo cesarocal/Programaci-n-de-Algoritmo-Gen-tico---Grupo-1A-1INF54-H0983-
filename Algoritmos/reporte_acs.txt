@@ -1,0 +1,75 @@
+==========================================================================================
+  REPORTE FINAL DE SIMULACIÓN - TASF.B2B
+  Algoritmo: ACS
+==========================================================================================
+  Parámetros: Sa=60min | k=1 | Sc=60min | Ta=120s
+  Inicio simulación : 01/01/2026 00:00
+  Fin simulación    : 02/01/2026 00:00
+==========================================================================================
+
+------------------------------------------------------------------------------------------
+BLOQUE 1 | Envíos: 2 | Maletas: 4 | Métrica: 0.3000
+------------------------------------------------------------------------------------------
+  ENVÍO 000000001       | OPKC (Asia) -> EDDI (Europa) | 2 maletas
+    ESTADO : [OK] A TIEMPO
+    Tiempo : 40h 48m | SLA: 48h | Llegada: 03/01/2026 12:40
+    Ruta:
+      (1) OPKC -> OYSN | Salida: 18:21 | Llegada: 21:37 | Cap: 300
+      (2) OYSN -> EDDI | Salida: 06:27 | Llegada: 12:40 | Cap: 300
+
+  ENVÍO 000000001       | VIDP (Asia) -> OSDI (Asia) | 2 maletas
+    ESTADO : [OK] A TIEMPO
+    Tiempo : 20h 43m | SLA: 24h | Llegada: 02/01/2026 16:36
+    Ruta:
+      (1) VIDP -> OMDB | Salida: 04:33 | Llegada: 07:19 | Cap: 320
+      (2) OMDB -> OSDI | Salida: 14:02 | Llegada: 16:36 | Cap: 360
+
+------------------------------------------------------------------------------------------
+BLOQUE 2 | Envíos: 4 | Maletas: 8 | Métrica: 9.3167
+------------------------------------------------------------------------------------------
+  ENVÍO 000000002       | OPKC (Asia) -> SLLP (America) | 2 maletas
+    ESTADO : [OK] A TIEMPO
+    Tiempo : 43h 13m | SLA: 48h | Llegada: 03/01/2026 15:54
+    Ruta:
+      (1) OPKC -> VIDP | Salida: 09:37 | Llegada: 10:59 | Cap: 320
+      (2) VIDP -> SLLP | Salida: 19:33 | Llegada: 15:54 | Cap: 320
+
+  ENVÍO 000000001       | OAKB (Asia) -> LKPR (Europa) | 2 maletas
+    ESTADO : [!!!] COLAPSO (Fuera de SLA)
+    Tiempo : 71h 37m | SLA: 48h | Llegada: 04/01/2026 20:23
+    Ruta:
+      (1) OAKB -> VIDP | Salida: 23:26 | Llegada: 00:42 | Cap: 300
+      (2) VIDP -> OPKC | Salida: 05:06 | Llegada: 06:28 | Cap: 340
+      (3) OPKC -> SUAA | Salida: 11:18 | Llegada: 05:27 | Cap: 340
+      (4) SUAA -> SBBR | Salida: 17:36 | Llegada: 20:29 | Cap: 340
+      (5) SBBR -> LKPR | Salida: 08:37 | Llegada: 20:23 | Cap: 300
+
+  ENVÍO 000000001       | OOMS (Asia) -> SLLP (America) | 2 maletas
+    ESTADO : [!!!] COLAPSO (Fuera de SLA)
+    Tiempo : 71h 28m | SLA: 48h | Llegada: 04/01/2026 20:17
+    Ruta:
+      (1) OOMS -> SUAA | Salida: 17:59 | Llegada: 11:02 | Cap: 360
+      (2) SUAA -> SABE | Salida: 12:04 | Llegada: 12:17 | Cap: 320
+      (3) SABE -> SGAS | Salida: 12:25 | Llegada: 13:40 | Cap: 360
+      (4) SGAS -> SLLP | Salida: 18:23 | Llegada: 20:17 | Cap: 320
+
+  ENVÍO 000000002       | VIDP (Asia) -> UMMS (Europa) | 2 maletas
+    ESTADO : [OK] A TIEMPO
+    Tiempo : 41h 14m | SLA: 48h | Llegada: 03/01/2026 14:04
+    Ruta:
+      (1) VIDP -> OPKC | Salida: 12:03 | Llegada: 13:25 | Cap: 360
+      (2) OPKC -> UMMS | Salida: 08:18 | Llegada: 14:04 | Cap: 360
+
+==========================================================================================
+  RESUMEN ESTADÍSTICO
+==========================================================================================
+  Total bloques procesados : 2
+  Total envíos procesados  : 6
+  Total maletas procesadas : 12
+  Envíos con ruta          : 6
+  Envíos sin ruta          : 0
+  Envíos a tiempo (SLA OK) : 4
+  Envíos en colapso        : 2
+  Tasa de éxito            : 66.7%
+  Tiempo total simulación  : 240s
+==========================================================================================
