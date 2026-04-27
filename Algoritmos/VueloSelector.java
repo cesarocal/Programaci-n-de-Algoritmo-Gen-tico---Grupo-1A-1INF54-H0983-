@@ -59,6 +59,16 @@ public class VueloSelector {
 
     // ---- Disponibilidad absoluta del pedido en su nodo actual ----
 
+    /**
+     * Tiempo mínimo de manipulación de maleta en cualquier aeropuerto:
+     *   - En escala : la maleta debe estar al menos HANDLING_MINUTES en el almacén
+     *                 antes de poder embarcar en el siguiente vuelo.
+     *   - En destino: tiempo entre llegada y recogida por el cliente.
+     * Se suma después de cada aterrizaje, por lo que candidatosViables y el BFS
+     * multi-hop lo heredan automáticamente al llamar a este método.
+     */
+    public static final int HANDLING_MINUTES = 10;
+
     public static java.time.LocalDateTime getDisponibilidadAbsoluta(Pedido p, Ruta ruta) {
         java.time.LocalDateTime actual = p.getTiempoCreacion();
         for (Asignacion a : ruta.getAsignaciones()) {
@@ -68,7 +78,8 @@ public class VueloSelector {
             if (salida.isBefore(actual)) salida = salida.plusDays(1);
             java.time.LocalDateTime llegada = salida.with(v.getHoraLlegada());
             if (llegada.isBefore(salida)) llegada = llegada.plusDays(1);
-            actual = llegada;
+            // Tiempo de manipulación: mínimo 10 min en almacén tras cada aterrizaje
+            actual = llegada.plusMinutes(HANDLING_MINUTES);
         }
         return actual;
     }

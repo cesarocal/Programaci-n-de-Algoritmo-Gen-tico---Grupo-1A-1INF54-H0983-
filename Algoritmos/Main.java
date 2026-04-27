@@ -32,7 +32,7 @@ public class Main {
     private static final int K = 1;
 
     /** Ta: tiempo máximo del algoritmo por bloque, en SEGUNDOS */
-    private static final int TIEMPO_ALGORITMO_TA = 20;
+    private static final int TIEMPO_ALGORITMO_TA = 40;
 
     // ── Rango temporal de la simulación ──────────────────────
     // Usar LocalDateTime.of(año, mes, día, hora, minuto) o null

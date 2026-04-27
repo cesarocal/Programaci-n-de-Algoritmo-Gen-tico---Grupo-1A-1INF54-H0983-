@@ -143,8 +143,12 @@ public class ACSAdapter {
                 capVuelos.merge(claveVuelo, envio.getCantidadMaletas(), Integer::sum);
                 input.incrementarOcupacionGlobalVuelo(claveVuelo, envio.getCantidadMaletas());
 
-                llegadaFinal  = llegada;
-                tiempoActual  = llegada; // Sin +10min: consistente con VueloSelector.getDisponibilidadAbsoluta
+                // tiempoActual y llegadaFinal avanzan con HANDLING_MINUTES:
+                // - En escala  : disponibilidad real para el siguiente embarque.
+                // - En destino : momento en que el cliente puede recoger la maleta.
+                // Esto es consistente con VueloSelector.getDisponibilidadAbsoluta.
+                tiempoActual  = llegada.plusMinutes(VueloSelector.HANDLING_MINUTES);
+                llegadaFinal  = tiempoActual;
             }
 
             if (!vuelosUsados.isEmpty()) {
