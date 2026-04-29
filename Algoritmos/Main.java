@@ -32,7 +32,7 @@ public class Main {
     private static final int K = 1;
 
     /** Ta: tiempo máximo del algoritmo por bloque, en SEGUNDOS */
-    private static final int TIEMPO_ALGORITMO_TA = 10;
+    private static final int TIEMPO_ALGORITMO_TA = 60;
 
     // ── Rango temporal de la simulación ──────────────────────
     // Usar LocalDateTime.of(año, mes, día, hora, minuto) o null
@@ -40,7 +40,7 @@ public class Main {
             LocalDateTime.of(2026, 1, 2, 0, 0);
 
     private static final LocalDateTime FECHA_FIN_SIM =
-            LocalDateTime.of(2026, 1, 2, 3, 0);
+            LocalDateTime.of(2026, 1, 3, 0, 0);
 
     // ── Rutas de archivos ─────────────────────────────────────
     private static final String RUTA_AEROPUERTOS =

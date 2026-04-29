@@ -1,5 +1,6 @@
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,7 +34,7 @@ public class AntColonySystem {
 
         // --- 2. Parámetros del ACS ---
         final double rho       = 0.1;
-        final int    mHormigas = 10;
+        final int    mHormigas = 20;
 
         long tiempoInicio = System.currentTimeMillis();
 
@@ -50,8 +51,15 @@ public class AntColonySystem {
                     Vuelo vuelo = VueloSelector.seleccionarSiguienteVuelo(
                             pedido, ruta, feromonas, tau0, input, reloj);
                     if (vuelo == null) break;
+                    
+                    LocalDateTime llegadaAlAeropuerto = VueloSelector.getDisponibilidadAbsoluta(pedido, ruta);; // tiempo de disponibilidad del paquete
+                    LocalDateTime salidaDelVuelo = llegadaAlAeropuerto.toLocalDate().atTime(vuelo.getHoraSalida());
+                    if (salidaDelVuelo.isBefore(llegadaAlAeropuerto)) {
+                        salidaDelVuelo = salidaDelVuelo.plusDays(1);
+                    }
 
                     ruta.agregarAsignacion(pedido, vuelo);
+                    ruta.registrarUsoAlmacen(vuelo.getOrigen(), llegadaAlAeropuerto, salidaDelVuelo, pedido.getCantidadMaletas());
 
                     // Actualización LOCAL
                     String key = pedido.getId() + "-" + vuelo.getId();
@@ -175,10 +183,6 @@ public class AntColonySystem {
     //  Auxiliares
     // =======================================================================
 
-    /**
-     * BUG FIX: Ahora verifica tiempoLimite usando candidatosViables,
-     * que sí aplica el filtro de SLA correctamente.
-     */
     private static boolean existeClienteAlcanzable(Ruta ruta, PlanificationProblemInputACS input) {
         for (Pedido p : input.getPedidos()) {
             if (ruta.getUbicacionActual(p).equals(p.getDestino())) continue;
@@ -190,9 +194,6 @@ public class AntColonySystem {
         return false;
     }
 
-    /**
-     * BUG FIX: Ahora verifica tiempoLimite usando candidatosViables.
-     */
     private static Pedido seleccionarPedidoActivo(Ruta ruta, PlanificationProblemInputACS input) {
         List<Pedido> candidatos = new ArrayList<>();
         for (Pedido p : input.getPedidos()) {
@@ -202,7 +203,7 @@ public class AntColonySystem {
             }
         }
         if (candidatos.isEmpty()) return null;
-        return candidatos.get(new Random().nextInt(candidatos.size()));
+        return candidatos.get(new Random(11111L).nextInt(candidatos.size()));
     }
 
     private static boolean hayPedidosIncompletos(Ruta ruta, PlanificationProblemInputACS input) {
@@ -232,17 +233,6 @@ public class AntColonySystem {
         return new Ruta(limpias);
     }
 
-    /**
-     * BUG FIX (causa principal): BFS multi-hop con verificación de tiempoLimite (SLA)
-     * en CADA nodo del árbol de búsqueda.
-     *
-     * Versión anterior: solo filtraba por capacidad → podía insertar vuelos que
-     * aterrizaban después del plazo comprometido.
-     *
-     * Versión corregida: la cola transporta el tiempo real de disponibilidad en cada
-     * nodo (igual que getDisponibilidadAbsoluta). Cada vuelo candidato se simula para
-     * calcular su llegada absoluta y se descarta si supera tiempoLimite.
-     */
     private static Ruta intentarInsercionMultiHop(Ruta ruta, PlanificationProblemInputACS input) {
         final int MAX_SALTOS = 5;
 
@@ -292,15 +282,47 @@ public class AntColonySystem {
                     // Verificar capacidad (clave con fecha, igual que candidatosViables)
                     String flightKey = v.getId() + "-" + salida.toLocalDate();
                     int usoLocal  = ruta.getOcupacionVuelo(flightKey);
-                    int usoGlobal = input.getOcupacionGlobal(flightKey);
-                    if (v.getCapacidad() - (usoLocal + usoGlobal) < p.getCantidadMaletas()) continue;
-
+                    int usoGlobal = input.getOcupacionGlobalVuelos(flightKey); // Asegúrate que este método exista en tu input
+                    
+                    if (usoGlobal + usoLocal + p.getCantidadMaletas() > v.getCapacidad()) continue;
+                    
+                    boolean almacenConEspacio = true;
+                    // Evaluamos desde que llega al nodo intermedio (tiempoEnNodo) hasta que sale (salida)
+                    for (LocalDateTime t = tiempoEnNodo.truncatedTo(ChronoUnit.HOURS); 
+                         !t.isAfter(salida); t = t.plusHours(1)) {
+                        
+                        String claveAlmacen = desde + "-" + t.toLocalDate() + "-" + t.getHour();
+                        
+                        int ocupGlobal = input.getOcupacionGlobalAlmacenes(claveAlmacen);
+                        int ocupLocal  = ruta.getOcupacionAlmacen(claveAlmacen);
+                        
+                        if (ocupGlobal + ocupLocal + p.getCantidadMaletas() > input.getAeropuerto(desde).getCapacidad()) {
+                            almacenConEspacio = false;
+                            break;
+                        }
+                    }
+                    if (!almacenConEspacio) continue; // Descartar si rebasa el almacén
+                    
                     List<Vuelo> nuevoCamino = new ArrayList<>(camino);
                     nuevoCamino.add(v);
 
                     if (v.getDestino().equals(destino)) {
                         // Camino completo y dentro del SLA: insertar
-                        for (Vuelo vi : nuevoCamino) ruta.agregarAsignacion(p, vi);
+                        LocalDateTime tiempoCursor = tiempoEnOrigen;
+                        for (Vuelo vi : nuevoCamino) {
+                            // Calculamos salida de este tramo
+                            LocalDateTime sal = tiempoCursor.with(vi.getHoraSalida());
+                            if (sal.isBefore(tiempoCursor)) sal = sal.plusDays(1);
+                            
+                            ruta.agregarAsignacion(p, vi);
+                            
+                            // Bloqueamos el almacén local de la hormiga
+                            ruta.registrarUsoAlmacen(vi.getOrigen(), tiempoCursor, sal, p.getCantidadMaletas());
+                            
+                            // Avanzamos el cursor al siguiente aeropuerto
+                            tiempoCursor = sal.with(vi.getHoraLlegada());
+                            if (tiempoCursor.isBefore(sal)) tiempoCursor = tiempoCursor.plusDays(1);
+                        }
                         break bfsLoop;
                     }
 

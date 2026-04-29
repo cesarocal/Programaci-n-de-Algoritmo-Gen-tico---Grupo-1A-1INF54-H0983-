@@ -14,7 +14,7 @@ public class AlgoritmoGenetico {
     private int tamanoPoblacion = 5;
     private double probCruzamiento = 0.8;
     private double probMutacion = 0.1;
-    private Random random = new Random();
+    private Random random = new Random(11111L);
 
     // Red de vuelos y aeropuertos para el decodificador
     private List<VueloAlgoritmo> vuelosDisponibles;
@@ -35,9 +35,12 @@ public class AlgoritmoGenetico {
         return ocupacionAlmacenesFisicos;
     }
 
-    public AlgoritmoGenetico(List<VueloAlgoritmo> vuelosDisponibles, Map<String, AeropuertoAlgoritmo> mapaAeropuertos) {
+    public AlgoritmoGenetico(List<VueloAlgoritmo> vuelosDisponibles, Map<String, AeropuertoAlgoritmo> mapaAeropuertos, Map<String, Integer> ocupacionVuelosHistorica,
+                             Map<String, Integer> ocupacionAlmacenesHistorica) {
         this.vuelosDisponibles = vuelosDisponibles;
         this.mapaAeropuertos = mapaAeropuertos;
+        this.estadoCapacidadesFinal = new HashMap<>(ocupacionVuelosHistorica);
+        this.ocupacionAlmacenesFisicos = new HashMap<>(ocupacionAlmacenesHistorica);
     }
 
     public List<EnvioAlgoritmo> planificar(List<EnvioAlgoritmo> enviosDelSalto, int limiteTiempoSegundos) {
@@ -74,11 +77,11 @@ public class AlgoritmoGenetico {
         // Guardamos las rutas finales del mejor individuo
         Individuo mejor = poblacion.get(0);
         mejoresRutasActuales.clear();
-        estadoCapacidadesFinal.clear();
+        //estadoCapacidadesFinal.clear();
 
         for (EnvioAlgoritmo envio : mejor.getCromosoma()) {
             // Simulamos la ruta descontando la capacidad del mapa global final
-            ResultadoRuta res = simularRutaParaEnvio(envio, this.estadoCapacidadesFinal);
+            ResultadoRuta res = simularRutaParaEnvio(envio, estadoCapacidadesFinal, new HashMap<>());
             
             if (res != null) {
                 String claveUnica = envio.getOrigenOaci() + "-" + envio.getId();
@@ -89,8 +92,8 @@ public class AlgoritmoGenetico {
                     VueloAlgoritmo v = res.vuelosUsados.get(i);
                     String claveCap = v.getOrigenOaci() + "-" + v.getDestinoOaci() + "-" + v.getHoraSalida() + "-" + res.fechasVuelo.get(i).toLocalDate();
                     
-                    int capacidadDisponible = this.estadoCapacidadesFinal.getOrDefault(claveCap, v.getCapacidad());
-                    this.estadoCapacidadesFinal.put(claveCap, capacidadDisponible - envio.getCantidadMaletas());
+                    int ocupacionActual = this.estadoCapacidadesFinal.getOrDefault(claveCap, 0);
+                    this.estadoCapacidadesFinal.put(claveCap, ocupacionActual + envio.getCantidadMaletas());
                 }
 
                 for (int i = 0; i < res.vuelosUsados.size(); i++) {
@@ -140,10 +143,11 @@ public class AlgoritmoGenetico {
 
     private void evaluarFitness(Individuo individuo) {
         double costoTotal = 0.0;
-        Map<String, Integer> capacidadDinamica = new HashMap<>();
+        Map<String, Integer> capacidadDinamica = new HashMap<>(this.estadoCapacidadesFinal);
+        Map<String, Integer> almacenDinamico = new HashMap<>();
 
         for (EnvioAlgoritmo envio : individuo.getCromosoma()) {
-            ResultadoRuta resultado = simularRutaParaEnvio(envio, capacidadDinamica); 
+            ResultadoRuta resultado = simularRutaParaEnvio(envio, capacidadDinamica, almacenDinamico); 
             
             if (resultado == null) {
                 // Penalización por colapso (No hay ruta)
@@ -171,7 +175,27 @@ public class AlgoritmoGenetico {
                     VueloAlgoritmo v = resultado.vuelosUsados.get(i);
                     LocalDate diaVuelo = resultado.fechasVuelo.get(i).toLocalDate();
                     String clave = v.getOrigenOaci() + "-" + v.getDestinoOaci() + "-" + v.getHoraSalida() + "-" + diaVuelo;
-                    capacidadDinamica.put(clave, capacidadDinamica.getOrDefault(clave, v.getCapacidad()) - envio.getCantidadMaletas());
+                    int ocupacionDinActual = capacidadDinamica.getOrDefault(clave, 0);
+                    capacidadDinamica.put(clave, ocupacionDinActual + envio.getCantidadMaletas());
+                }
+
+                for (int i = 0; i < resultado.vuelosUsados.size(); i++) {
+                    String oaci = resultado.vuelosUsados.get(i).getOrigenOaci(); 
+                    LocalDateTime llegadaAlAlmacen;
+                    if (i == 0) {
+                        llegadaAlAlmacen = envio.getFechaHoraRegistro();
+                    } else {
+                        VueloAlgoritmo vAnterior = resultado.vuelosUsados.get(i - 1);
+                        LocalDateTime salidaVueloAnterior = resultado.fechasVuelo.get(i - 1);
+                        long duracionMinutos = java.time.Duration.between(vAnterior.getHoraSalida(), vAnterior.getHoraLlegada()).toMinutes();
+                        if (duracionMinutos < 0) duracionMinutos += 1440;
+                        llegadaAlAlmacen = salidaVueloAnterior.plusMinutes(duracionMinutos);
+                    }
+
+                    LocalDateTime salidaDelAlmacen = resultado.fechasVuelo.get(i);
+                    
+                    // Actualizamos el mapa local/dinámico
+                    ocuparAlmacenDinamico(oaci, llegadaAlAlmacen, salidaDelAlmacen, envio.getCantidadMaletas(), almacenDinamico);
                 }
             }
         }
@@ -225,7 +249,7 @@ public class AlgoritmoGenetico {
         }
     }
 
-    private ResultadoRuta simularRutaParaEnvio(EnvioAlgoritmo envio, Map<String, Integer> capacidadDinamica) {
+    private ResultadoRuta simularRutaParaEnvio(EnvioAlgoritmo envio, Map<String, Integer> capacidadDinamica, Map<String, Integer> almacenDinamico) {
         PriorityQueue<NodoRuta> cola = new PriorityQueue<>();
         
         // Estado inicial
@@ -256,30 +280,38 @@ public class AlgoritmoGenetico {
                 LocalDateTime proximaSalida = calcularProximaSalida(actual.tiempoActual, vuelo.getHoraSalida());
                 
                 String claveCapacidad = vuelo.getOrigenOaci() + "-" + vuelo.getDestinoOaci() + "-" + vuelo.getHoraSalida() + "-" + proximaSalida.toLocalDate();
-                int capacidadDisponible = capacidadDinamica.getOrDefault(claveCapacidad, vuelo.getCapacidad());
+                int ocupacionActual = capacidadDinamica.getOrDefault(claveCapacidad, 0);
+                if (ocupacionActual + envio.getCantidadMaletas() > vuelo.getCapacidad()) continue;
+
+                LocalDateTime llegadaAlAlmacenOrigen = actual.rutaUsada.isEmpty() 
+                    ? envio.getFechaHoraRegistro() 
+                    : actual.tiempoActual.minusMinutes(10); 
+            
+                AeropuertoAlgoritmo aeroOrigen = mapaAeropuertos.get(vuelo.getOrigenOaci());
                 
-                if (capacidadDisponible < envio.getCantidadMaletas()) continue;
+                if (!hayEspacioEnAlmacen(vuelo.getOrigenOaci(), llegadaAlAlmacenOrigen, proximaSalida, envio.getCantidadMaletas(), aeroOrigen.getCapacidadAlmacen(), almacenDinamico)) {
+                    continue; // Descartar: Se desbordaría el almacén de origen esperando este vuelo
+                }
 
                 LocalDateTime llegada = calcularLlegada(proximaSalida, vuelo.getHoraSalida(), vuelo.getHoraLlegada());
-                LocalDateTime proximoTiempoDisponible = llegada.plusMinutes(10); // Escala mínima
+                LocalDateTime proximoTiempoDisponible = llegada.plusMinutes(10); 
 
                 if (!vuelo.getDestinoOaci().equals(envio.getDestinoOaci())) {
-        
                     AeropuertoAlgoritmo aeroDestino = mapaAeropuertos.get(vuelo.getDestinoOaci());
-                    // Asumimos un tiempo mínimo de espera (ej. 2 horas) para buscar la siguiente conexión
                     LocalDateTime salidaProyectada = llegada.plusHours(2); 
 
-                    // Verificamos si habrá espacio en el aeropuerto de escala cuando lleguemos
+                    // Agregamos almacenDinamico al método
                     boolean escalaTieneEspacio = hayEspacioEnAlmacen(
                         vuelo.getDestinoOaci(), 
                         llegada, 
                         salidaProyectada, 
                         envio.getCantidadMaletas(), 
-                        aeroDestino.getCapacidadAlmacen()
+                        aeroDestino.getCapacidadAlmacen(),
+                        almacenDinamico 
                     );
 
                     if (!escalaTieneEspacio) {
-                        continue; // Descartamos este vuelo, el almacén de escala estará lleno
+                        continue; 
                     }
                 }
 
@@ -392,16 +424,31 @@ public class AlgoritmoGenetico {
         }
     }
 
-    private boolean hayEspacioEnAlmacen(String oaci, LocalDateTime desde, LocalDateTime hasta, int cantidad, int capacidadMax) {
-    // Revisamos cada hora (o cada bloque de tiempo) entre la llegada y la salida
-    for (LocalDateTime t = desde; t.isBefore(hasta); t = t.plusHours(1)) {
-        String clave = oaci + "-" + t.toLocalDate() + "-" + t.getHour();
-        int ocupacionActual = ocupacionAlmacenesFisicos.getOrDefault(clave, 0);
-        if (ocupacionActual + cantidad > capacidadMax) {
-            return false; // El almacén se llenaría en este horario
+    private void ocuparAlmacenDinamico(String oaci, LocalDateTime llegada, LocalDateTime salida, int cantidadMaletas, Map<String, Integer> almacenDinamico) {
+        LocalDateTime tiempoEvaluacion = llegada.truncatedTo(ChronoUnit.HOURS);
+        LocalDateTime tiempoFin = salida.truncatedTo(ChronoUnit.HOURS);
+
+        while (!tiempoEvaluacion.isAfter(tiempoFin)) {
+            String claveAlmacen = oaci + "-" + tiempoEvaluacion.toLocalDate() + "-" + tiempoEvaluacion.getHour();
+            int ocupacionActual = almacenDinamico.getOrDefault(claveAlmacen, 0);
+            almacenDinamico.put(claveAlmacen, ocupacionActual + cantidadMaletas);
+            tiempoEvaluacion = tiempoEvaluacion.plusHours(1);
         }
     }
-    return true;
-}
+
+    private boolean hayEspacioEnAlmacen(String oaci, LocalDateTime desde, LocalDateTime hasta, int cantidad, int capacidadMax, Map<String, Integer> almacenDinamico) {
+        for (LocalDateTime t = desde; t.isBefore(hasta); t = t.plusHours(1)) {
+            String clave = oaci + "-" + t.toLocalDate() + "-" + t.getHour();
+            
+            // Sumamos la ocupación real del sistema + la simulación del cromosoma
+            int ocupacionGlobal = ocupacionAlmacenesFisicos.getOrDefault(clave, 0);
+            int ocupacionLocal = almacenDinamico.getOrDefault(clave, 0);
+            
+            if (ocupacionGlobal + ocupacionLocal + cantidad > capacidadMax) {
+                return false; 
+            }
+        }
+        return true;
+    }
 
 }

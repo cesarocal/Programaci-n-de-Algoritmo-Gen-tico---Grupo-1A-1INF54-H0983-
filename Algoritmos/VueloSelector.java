@@ -1,4 +1,6 @@
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
@@ -8,7 +10,7 @@ import java.util.*;
  */
 public class VueloSelector {
 
-    private static final Random random = new Random();
+    private static final Random random = new Random(11111L);
 
     public static Vuelo seleccionarSiguienteVuelo(
             Pedido p, Ruta ruta, Map<String, Double> feromonas,
@@ -17,7 +19,7 @@ public class VueloSelector {
         List<Vuelo> Ni = candidatosViables(p, ruta, input);
         if (Ni == null || Ni.isEmpty()) return null;
 
-        final double q0   = 0.9;
+        final double q0   = 0.7;
         final double beta = 2.0;
 
         double wi = tiempoDisponibleActual(p, ruta);
@@ -104,9 +106,36 @@ public class VueloSelector {
             if (llegada.isAfter(p.getTiempoLimite())) continue;
 
             String flightKey = v.getId() + "-" + salida.toLocalDate().toString();
-            int usoGlobal = input.getOcupacionGlobal(flightKey);
+            int usoGlobal = input.getOcupacionGlobalVuelos(flightKey);
             int usoLocal  = ruta.getOcupacionVuelo(flightKey);
-            if (v.getCapacidad() - (usoGlobal + usoLocal) < p.getCantidadMaletas()) continue;
+            if (usoGlobal + usoLocal + p.getCantidadMaletas() > v.getCapacidad()) continue;
+
+            LocalDateTime llegadaAlAlmacen = getDisponibilidadAbsoluta(p, ruta); // Cuando llega al aeropuerto
+            LocalDateTime salidaDelAlmacen = salida; // Cuando sale el vuelo
+
+            boolean almacenConEspacio = true;
+
+            // Validar cada hora de espera
+            for (LocalDateTime t = llegadaAlAlmacen.truncatedTo(ChronoUnit.HOURS); 
+                !t.isAfter(salidaDelAlmacen); t = t.plusHours(1)) {
+                
+                String claveAlmacen = v.getOrigen() + "-" + t.toLocalDate() + "-" + t.getHour();
+                
+                // 1. Lo que ya estaba ocupado desde antes (histórico)
+                int ocupacionGlobal = input.getOcupacionGlobalAlmacenes(claveAlmacen);
+                
+                // 2. Lo que esta hormiga ESPECÍFICA ya acomodó en este almacén 
+                //    mientras construía la solución actual.
+                int ocupacionLocal = ruta.getOcupacionAlmacen(claveAlmacen); 
+                
+                // Validamos la suma contra la capacidad máxima del almacén de origen
+                if (ocupacionGlobal + ocupacionLocal + p.getCantidadMaletas() > input.getAeropuerto(v.getOrigen()).getCapacidad()) {
+                    almacenConEspacio = false;
+                    break;
+                }
+            }
+
+            if (!almacenConEspacio) continue; // Si no cabe, descartar el vuelo
 
             viables.add(v);
         }

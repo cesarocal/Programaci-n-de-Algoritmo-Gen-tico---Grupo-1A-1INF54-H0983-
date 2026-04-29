@@ -125,7 +125,7 @@ public class PlanificationSolutionOutput {
             conteo++;
         }
 
-        this.metricaUnificada = conteo > 0 ? sumaRatio / conteo : Double.MAX_VALUE;
+        this.metricaUnificada = conteo > 0 ? sumaRatio * 100 / conteo : Double.MAX_VALUE;
     }
 
     public double getMetricaUnificada() { return metricaUnificada; }

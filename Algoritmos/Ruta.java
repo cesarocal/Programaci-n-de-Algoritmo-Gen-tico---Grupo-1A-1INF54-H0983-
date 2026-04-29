@@ -1,4 +1,6 @@
 import java.util.List;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
@@ -8,12 +10,14 @@ import java.util.HashSet;
 public class Ruta {
     private List<Asignacion> asignaciones;
     private Map<String, Integer> ocupacionVuelos;
+    private Map<String, Integer> ocupacionAlmacenes;
     private Map<String, String> estadoUbicacionPedido;
     private Map<String, Set<String>> aeropuertosVisitados;
 
     public Ruta() {
         this.asignaciones = new ArrayList<>();
         this.ocupacionVuelos = new HashMap<>();
+        this.ocupacionAlmacenes = new HashMap<>();
         this.estadoUbicacionPedido = new HashMap<>();
         this.aeropuertosVisitados = new HashMap<>();
     }
@@ -21,13 +25,15 @@ public class Ruta {
     public Ruta(List<Asignacion> asignaciones) {
         this.asignaciones = new ArrayList<>(asignaciones);
         this.ocupacionVuelos = new HashMap<>();
+        this.ocupacionAlmacenes = new HashMap<>();
         this.estadoUbicacionPedido = new HashMap<>();
         this.aeropuertosVisitados = new HashMap<>();
         for (Asignacion a : asignaciones) {
             this.ocupacionVuelos.put(a.getVuelo().getId(),
                     this.ocupacionVuelos.getOrDefault(a.getVuelo().getId(), 0) + a.getPedido().getCantidadMaletas());
             this.estadoUbicacionPedido.put(a.getPedido().getId(), a.getVuelo().getDestino());
-
+            this.ocupacionAlmacenes.put(a.getVuelo().getOrigen(),
+                    this.ocupacionAlmacenes.getOrDefault(a.getVuelo().getOrigen(), 0) + a.getPedido().getCantidadMaletas());
             this.aeropuertosVisitados.computeIfAbsent(a.getPedido().getId(), k -> new HashSet<>())
                     .add(a.getVuelo().getDestino());
             this.aeropuertosVisitados.get(a.getPedido().getId()).add(a.getPedido().getOrigen());
@@ -42,7 +48,7 @@ public class Ruta {
 
         this.asignaciones.add(new Asignacion(p, v, flightKey));
         this.ocupacionVuelos.put(flightKey,
-                this.ocupacionVuelos.getOrDefault(flightKey, 0) + p.getCantidadMaletas());
+            this.ocupacionVuelos.getOrDefault(flightKey, 0) + p.getCantidadMaletas());
         this.estadoUbicacionPedido.put(p.getId(), v.getDestino());
 
         this.aeropuertosVisitados.computeIfAbsent(p.getId(), k -> new HashSet<>()).add(p.getOrigen());
@@ -81,6 +87,22 @@ public class Ruta {
 
     public PlanificationSolutionOutputACS aPlanificationSolution() {
         return new PlanificationSolutionOutputACS(new ArrayList<>(this.asignaciones));
+    }
+
+    public void registrarUsoAlmacen(String oaci, LocalDateTime llegada, LocalDateTime salida, int cantidad) {
+        LocalDateTime cursor = llegada.truncatedTo(ChronoUnit.HOURS);
+        LocalDateTime fin    = salida.truncatedTo(ChronoUnit.HOURS);
+        
+        while (!cursor.isAfter(fin)) {
+            // Misma clave que usa el resto del sistema: OACI-YYYY-MM-DD-HH
+            String clave = oaci + "-" + cursor.toLocalDate() + "-" + cursor.getHour();
+            this.ocupacionAlmacenes.merge(clave, cantidad, Integer::sum);
+            cursor = cursor.plusHours(1);
+        }
+    }
+
+    public int getOcupacionAlmacen(String claveAlmacen) {
+        return ocupacionAlmacenes.getOrDefault(claveAlmacen, 0);
     }
 
 }

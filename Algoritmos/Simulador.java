@@ -305,8 +305,7 @@ public class Simulador {
 
                     String claveV   = v.getOrigenOaci() + "-" + v.getDestinoOaci()
                             + "-" + v.getHoraSalida() + "-" + salida.toLocalDate();
-                    int capRestante = capVuelosSol.getOrDefault(claveV, v.getCapacidad());
-                    int capUsada    = v.getCapacidad() - capRestante;
+                    int capUsada = capVuelosSol.getOrDefault(claveV, 0);
 
                     String claveA  = v.getOrigenOaci()
                             + "-" + salida.toLocalDate()
@@ -417,8 +416,7 @@ public class Simulador {
 
                             String claveV   = v.getOrigenOaci() + "-" + v.getDestinoOaci()
                                     + "-" + v.getHoraSalida() + "-" + salida.toLocalDate();
-                            int capRestante = capVuelosSol.getOrDefault(claveV, v.getCapacidad());
-                            int capUsada    = v.getCapacidad() - capRestante;
+                            int capUsada = capVuelosSol.getOrDefault(claveV, 0);
 
                             String claveA  = v.getOrigenOaci()
                                     + "-" + salida.toLocalDate()

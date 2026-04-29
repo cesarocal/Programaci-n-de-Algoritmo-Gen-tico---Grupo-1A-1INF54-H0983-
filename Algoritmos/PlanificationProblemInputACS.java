@@ -10,18 +10,21 @@ public class PlanificationProblemInputACS {
     private final Map<String, List<Vuelo>> vuelosPorOrigen;
     private final List<Pedido> pedidos;
 
-    /** Ocupación global de vuelos compartida con el input canónico */
+    
     private final Map<String, Integer> ocupacionGlobalVuelos;
+    private final Map<String, Integer> ocupacionGlobalAlmacenes;
 
     public PlanificationProblemInputACS(
             Map<String, Aeropuerto> aeropuertos,
             List<Vuelo> vuelos,
             List<Pedido> pedidos,
-            Map<String, Integer> ocupacionGlobalVuelos) {
+            Map<String, Integer> ocupacionGlobalVuelos,
+            Map<String, Integer> ocupacionGlobalAlmacenes) {
 
         this.aeropuertos           = aeropuertos;
         this.pedidos               = pedidos;
         this.ocupacionGlobalVuelos = ocupacionGlobalVuelos;
+        this.ocupacionGlobalAlmacenes = ocupacionGlobalAlmacenes;
 
         this.vuelosPorOrigen = new HashMap<>();
         for (Vuelo v : vuelos) {
@@ -40,11 +43,15 @@ public class PlanificationProblemInputACS {
 
     public List<Pedido> getPedidos() { return pedidos; }
 
-    public int getOcupacionGlobal(String flightKey) {
+    public int getOcupacionGlobalVuelos(String flightKey) {
         return ocupacionGlobalVuelos.getOrDefault(flightKey, 0);
     }
 
-    public void incrementarOcupacionGlobal(String flightKey, int cantidad) {
+    public int getOcupacionGlobalAlmacenes(String warehouseKey) {
+        return ocupacionGlobalAlmacenes.getOrDefault(warehouseKey, 0);
+    }
+
+    public void incrementarOcupacionGlobalVuelos(String flightKey, int cantidad) {
         ocupacionGlobalVuelos.merge(flightKey, cantidad, Integer::sum);
     }
 }

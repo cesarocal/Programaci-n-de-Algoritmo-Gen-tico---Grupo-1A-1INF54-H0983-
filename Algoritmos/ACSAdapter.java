@@ -6,11 +6,8 @@ import java.util.*;
  * Adaptador ACS → estructuras canónicas del AG.
  *
  * Semántica de mapas (idéntica a AlgoritmoGenetico):
- *   estadoCapacidadesVuelos  → capacidad RESTANTE (inicia en v.getCapacidad(), se resta)
+ *   estadoCapacidadesVuelos  → capacidad actual
  *   ocupacionAlmacenes       → maletas acumuladas por hora (clave: OACI-fecha-hora)
- *
- * Los snapshots de capacidad y almacén en el momento de cada asignación
- * se guardan en ResultadoRuta para poder mostrarlos en el reporte.
  */
 public class ACSAdapter {
 
@@ -21,6 +18,9 @@ public class ACSAdapter {
             output.setMetricaUnificada(0.0);
             return output;
         }
+
+        Map<String, Integer> capVuelos = new HashMap<>(input.getOcupacionGlobalVuelos());
+        Map<String, Integer> capAlmacenes = new HashMap<>(input.getOcupacionGlobalAlmacenes());
 
         // --- 1. Aeropuerto ACS interno ---
         Map<String, Aeropuerto> mapaAeropuertosACS = new HashMap<>();
@@ -58,8 +58,12 @@ public class ACSAdapter {
 
         // --- 4. Input ACS interno ---
         PlanificationProblemInputACS inputACS = new PlanificationProblemInputACS(
-                mapaAeropuertosACS, vuelosACS, pedidosACS,
-                input.getOcupacionGlobalVuelos());
+            mapaAeropuertosACS, 
+            vuelosACS, 
+            pedidosACS, 
+            capVuelos,
+            capAlmacenes
+        );
 
         // --- 5. Ejecutar ACS ---
         PlanificationSolutionOutputACS solACS =
@@ -72,11 +76,6 @@ public class ACSAdapter {
                     .computeIfAbsent(asig.getPedido().getId(), k -> new ArrayList<>())
                     .add(asig);
         }
-
-        // Estado acumulado de capacidades y almacenes (semántica idéntica al AG).
-        // Partimos del estado global de bloques anteriores.
-        Map<String, Integer> capVuelos    = new HashMap<>(input.getOcupacionGlobalVuelos());
-        Map<String, Integer> capAlmacenes = new HashMap<>(input.getOcupacionGlobalAlmacenes());
 
         for (Map.Entry<String, List<Asignacion>> entry : asigPorPedido.entrySet()) {
             EnvioAlgoritmo envio = mapaEnvioPorPedidoId.get(entry.getKey());
@@ -106,9 +105,8 @@ public class ACSAdapter {
 
                 // ── Snapshot de capacidad ANTES de esta asignación ───────────────
                 // capRestante actual = capacidad ya reducida por asignaciones previas
-                int capRestanteAntes = capVuelos.getOrDefault(claveVuelo, va.getCapacidad());
-                int capUsadaAntes    = va.getCapacidad() - capRestanteAntes;
-                snapCapUsada.add(capUsadaAntes);
+                int ocupacionActualVuelo = capVuelos.getOrDefault(claveVuelo, 0);
+                snapCapUsada.add(ocupacionActualVuelo);
 
                 // ── Snapshot de almacén de origen en hora de salida ──────────────
                 String claveAlmacen = va.getOrigenOaci()
@@ -120,9 +118,7 @@ public class ACSAdapter {
                 snapOcupAlmacen.add(capAlmacenes.getOrDefault(claveAlmacen, 0));
 
                 // ── Actualizar capacidad restante del vuelo ───────────────────────
-                capVuelos.put(claveVuelo, capRestanteAntes - envio.getCantidadMaletas());
-                input.incrementarOcupacionGlobalVuelo(claveVuelo, envio.getCantidadMaletas());
-                input.getOcupacionGlobalAlmacenes().putAll(capAlmacenes);
+                capVuelos.put(claveVuelo, ocupacionActualVuelo + envio.getCantidadMaletas());
 
                 vuelosUsados.add(va);
                 fechasVuelo.add(salida);
@@ -137,6 +133,9 @@ public class ACSAdapter {
                         llegadaFinal, vuelosUsados, fechasVuelo));
             }
         }
+
+        input.getOcupacionGlobalVuelos().putAll(capVuelos);
+        input.getOcupacionGlobalAlmacenes().putAll(capAlmacenes);
 
         output.calcularMetricaUnificada(input.getMapaAeropuertos());
         output.setEstadoCapacidadesVuelos(capVuelos);
