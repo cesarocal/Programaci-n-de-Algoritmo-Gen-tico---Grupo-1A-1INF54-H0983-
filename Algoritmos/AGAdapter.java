@@ -26,6 +26,7 @@ public class AGAdapter {
         );
 
         List<EnvioAlgoritmo> enviosPlanificados = ag.planificar(input.getEnvios(), tiempoSegundos);
+        enviosPlanificados.sort(Comparator.comparing(EnvioAlgoritmo::getFechaHoraRegistro));
 
         Map<String, ResultadoRuta> mapaRutas   = ag.getMejoresRutasActuales();
         Map<String, Integer> capVuelos          = ag.getEstadoCapacidadesFinal(); // Ahora es "Ocupación de Vuelos"
