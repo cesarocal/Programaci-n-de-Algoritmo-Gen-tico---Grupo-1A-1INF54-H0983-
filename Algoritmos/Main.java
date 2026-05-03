@@ -29,18 +29,18 @@ public class Main {
     private static final int SALTO_ALGORITMO_SA = 10;
 
     /** k: Sc = k * Sa (ventana de consumo de datos) */
-    private static final int K = 6;
+    private static final int K = 12;
 
     /** Ta: tiempo máximo del algoritmo por bloque, en SEGUNDOS */
-    private static final int TIEMPO_ALGORITMO_TA = 30;
+    private static final int TIEMPO_ALGORITMO_TA = 15;
 
     // ── Rango temporal de la simulación ──────────────────────
     // Usar LocalDateTime.of(año, mes, día, hora, minuto) o null
     public static final LocalDateTime FECHA_INICIO_SIM =
-            LocalDateTime.of(2028, 12, 29, 14, 0);
+            LocalDateTime.of(2027, 12, 18, 0, 0);
 
     public static final LocalDateTime FECHA_FIN_SIM =
-            LocalDateTime.of(2028, 12, 30, 14, 0);
+            LocalDateTime.of(2027, 12, 19, 0, 0);
 
     // ── Rutas de archivos ─────────────────────────────────────
     private static final String RUTA_AEROPUERTOS =

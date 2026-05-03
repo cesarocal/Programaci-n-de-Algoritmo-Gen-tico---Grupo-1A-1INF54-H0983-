@@ -35,8 +35,11 @@ public class AntColonySystem {
         int n = input.getPedidos().size();
         if (n == 0) return new PlanificationSolutionOutputACS(new ArrayList<>());
 
+        // Deadline global: TODO el método debe terminar antes de este instante
+        long deadline = System.currentTimeMillis() + maxTiempoMs;
+
         // --- 1. Solución inicial con A* puro (sin feromonas aún) ---
-        PlanificationSolutionOutputACS psiStar = construirSolucionInicial(input);
+        PlanificationSolutionOutputACS psiStar = construirSolucionInicial(input, deadline);
         double Rstar = calcularResponsiveness(psiStar, input);
         double Tstar = calcularDistanciaTotal(psiStar);
 
@@ -45,20 +48,22 @@ public class AntColonySystem {
                 : 1.0 / Math.max(n, 1);
 
         Map<String, Double> feromonas = new ConcurrentHashMap<>();
-        long tiempoInicio = System.currentTimeMillis();
 
         // Ordenar pedidos por urgencia UNA vez — se reutiliza en cada hormiga
         List<Pedido> pedidosPorUrgencia = new ArrayList<>(input.getPedidos());
         pedidosPorUrgencia.sort(Comparator.comparing(Pedido::getTiempoLimite));
 
         // --- 2. Bucle principal ACS ---
-        while (System.currentTimeMillis() - tiempoInicio < maxTiempoMs) {
+        while (System.currentTimeMillis() < deadline) {
 
             for (int h = 0; h < M_HORMIGAS; h++) {
+                if (System.currentTimeMillis() >= deadline) break;
+
                 Ruta ruta = new Ruta();
                 VueloSelector.limpiarCacheDisponibilidad();
 
                 for (Pedido pedido : pedidosPorUrgencia) {
+                    if (System.currentTimeMillis() >= deadline) break;
 
                     // Skip pedidos ya en su destino
                     if (ruta.getUbicacionActual(pedido).equals(pedido.getDestino())) continue;
@@ -188,7 +193,7 @@ public class AntColonySystem {
     // =======================================================================
 
     private static PlanificationSolutionOutputACS construirSolucionInicial(
-            PlanificationProblemInputACS input) {
+            PlanificationProblemInputACS input, long deadline) {
 
         List<Pedido> todos = new ArrayList<>(input.getPedidos());
         // Ordenar por urgencia (SLA más ajustado primero)
@@ -208,6 +213,8 @@ public class AntColonySystem {
         Map<String, Double> sinFeromonas = Collections.emptyMap();
 
         for (Pedido p : aProc) {
+            if (System.currentTimeMillis() >= deadline) break;
+
             List<Vuelo> rutaCompleta = VueloSelector.encontrarRutaCompletaAstar(
                     p, rutaTemp, sinFeromonas, 1.0, input, MAX_SALTOS_ASTAR);
             if (rutaCompleta == null) continue;

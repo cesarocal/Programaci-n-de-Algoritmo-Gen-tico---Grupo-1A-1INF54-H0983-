@@ -515,6 +515,7 @@ public class Simulador {
 
     public static int getOcupacionExactaAlmacen(String oaci, LocalDateTime momento, Map<String, int[]> ocupacionGlobalAlmacenes) {
         int idx = Main.getIndiceMinuto(momento);
+        if (idx <= 0) return 0;
         int[] global = ocupacionGlobalAlmacenes.get(oaci);
         return (global != null) ? global[idx-1] : 0;
     }

@@ -1,0 +1,4 @@
+[2026-05-03 05:58:09] === INICIANDO NUEVA EJECUCION ===
+[2026-05-03 05:58:09] Pedidos con vuelos desde origen: 0/0
+[2026-05-03 05:58:09] Completados: 0/0 Asignaciones: 0 Tiempo: 0s
+[2026-05-03 05:58:09] === SIMULACION FINALIZADA ===

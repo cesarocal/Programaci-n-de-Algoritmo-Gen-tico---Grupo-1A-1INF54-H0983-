@@ -53,17 +53,20 @@ public class AlgoritmoGenetico {
         // Convertimos los segundos a milisegundos para mayor precisión
         long tiempoInicio = System.currentTimeMillis();
         long duracionMaximaMs = limiteTiempoSegundos * 1000L;
+        long deadline = tiempoInicio + duracionMaximaMs;
+        boolean tiempoAgotado = false;
 
-        while (true) {
-            
-            long tiempoTranscurrido = System.currentTimeMillis() - tiempoInicio;
-            if (tiempoTranscurrido >= duracionMaximaMs) {
-                break; // Rompemos el ciclo de generaciones prematuramente
-            }
+        while (!tiempoAgotado) {
 
             for (Individuo ind : poblacion) {
+                if (System.currentTimeMillis() >= deadline) {
+                    tiempoAgotado = true;
+                    break;
+                }
                 evaluarFitness(ind);
             }
+
+            if (tiempoAgotado) break;
 
             poblacion.sort(Comparator.comparingDouble(Individuo::getFitness));
             List<Individuo> nuevaPoblacion = nuevaGeneracion(poblacion);
@@ -72,7 +75,9 @@ public class AlgoritmoGenetico {
         }
 
         // Evaluar la última generación (o la generación donde se detuvo) y retornar el mejor
-        poblacion.forEach(this::evaluarFitness);
+        for (Individuo ind : poblacion) {
+            if (ind.getFitness() == 0.0) ind.setFitness(Double.MAX_VALUE);
+        }
         poblacion.sort(Comparator.comparingDouble(Individuo::getFitness));
         
         System.out.println("   -> Mejor fitness alcanzado: " + poblacion.get(0).getFitness());
